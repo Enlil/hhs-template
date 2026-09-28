@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{projectName}} logo">
+  <!-- Static fill, not currentColor: this file is loaded via <img>/url() in both
+       frontends, and an <img>-embedded SVG renders in its own isolated context —
+       it never inherits the host page's `color`, so currentColor would silently
+       resolve to black regardless of surrounding CSS. -->
+  <rect width="32" height="32" rx="8" fill="#0f172a" />
+  <path d="M9 21V11l7 6 7-6v10" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg>

@@ -1,0 +1,40 @@
+/*
+ * Maps tokens.css's plain CSS variables into Tailwind v4's theme, so
+ * utilities like `bg-primary`, `text-muted`, and `rounded-md` read from the
+ * same shared source instead of Tailwind's own defaults. `@theme inline`
+ * keeps these as live `var(--...)` references (resolved from tokens.css's
+ * `:root` block at runtime) rather than copying values in at build time —
+ * see https://tailwindcss.com/docs/theme#referencing-other-variables.
+ *
+ * Import this AFTER tailwindcss and tokens.css in each app's global stylesheet.
+ */
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --font-sans: var(--font-sans);
+
+  --shadow-sm: var(--shadow-sm);
+
+  /*
+   * Breakpoints are deliberately NOT mapped here. Tailwind bakes theme
+   * breakpoints into `@media` conditions at build time, and CSS custom
+   * properties cannot be used inside a media query — `@media (width >=
+   * var(--breakpoint-lg))` is invalid CSS and breaks every responsive
+   * utility. tokens.css's --breakpoint-* values are for reference/non-Tailwind
+   * consumers only; they match Tailwind v4's own defaults (640/768/1024/1280px)
+   * exactly, so Tailwind's responsive variants (sm:, md:, lg:, xl:) already
+   * agree with them without an explicit mapping.
+   */
+}

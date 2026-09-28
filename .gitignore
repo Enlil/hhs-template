@@ -1,0 +1,23 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.env
+.env.local
+
+# build artifact: templates copied here by packages/cli/scripts/copy-templates.mjs before publish
+packages/cli/templates/
+
+# scratch space used by manual smoke testing (see packages/cli/tests/smoke.ts)
+.smoke-tmp/
+
+# Locally generated example app; it is maintained as its own repository.
+packages/cli/apptest/
+
+# .NET
+bin/
+obj/
+
+# editors
+.vscode/
+.idea/

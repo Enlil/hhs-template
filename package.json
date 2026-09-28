@@ -1,0 +1,20 @@
+{
+  "name": "create-my-app-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Monorepo for the create-my-app scaffolding CLI: the CLI engine plus its frontend/backend/shared templates.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/cli",
+    "dev": "npm run dev -w packages/cli",
+    "test": "npm run test -w packages/cli",
+    "test:smoke": "npm run test:smoke -w packages/cli",
+    "typecheck": "npm run typecheck -w packages/cli"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "license": "MIT"
+}

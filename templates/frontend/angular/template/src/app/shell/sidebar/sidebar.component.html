@@ -1,0 +1,9 @@
+<aside class="hidden w-[var(--sidebar-width)] shrink-0 border-r border-border bg-background p-4 sm:block">
+  <nav class="flex flex-col gap-1">
+    @for (link of links; track link.path) {
+      <a [routerLink]="link.path" routerLinkActive #rla="routerLinkActive" [class]="linkClasses(rla.isActive)">
+        {{ link.label }}
+      </a>
+    }
+  </nav>
+</aside>

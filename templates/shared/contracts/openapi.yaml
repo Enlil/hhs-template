@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: '{{projectName}} API'
+  description: >
+    Framework-neutral API contract shared by both backend implementations
+    (Node/NestJS and .NET/ASP.NET Core). Both must implement these routes
+    with identical request/response shapes so the frontend never needs to
+    know which backend it's talking to. See ../../README.md ("API contract")
+    for how to extend this safely.
+  version: '0.1.0'
+servers:
+  - url: '{{apiUrl}}'
+    description: Local development
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness check
+      tags: [health]
+      responses:
+        '200':
+          description: The API is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+  /example:
+    get:
+      operationId: getExample
+      summary: Example data consumed by the starter dashboard
+      tags: [example]
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: Optional name to personalize the message.
+          schema:
+            type: string
+            maxLength: 50
+      responses:
+        '200':
+          description: Example payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExampleResponse'
+              example:
+                message: 'Hello from the example API endpoint'
+                receivedAt: '2026-01-01T12:00:00.000Z'
+        '400':
+          description: Validation failed (e.g. `name` too long).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    ExampleResponse:
+      type: object
+      required: [message, receivedAt]
+      properties:
+        message:
+          type: string
+        receivedAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [statusCode, message]
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string

@@ -1,0 +1,37 @@
+{
+  "name": "create-my-app",
+  "version": "0.1.0",
+  "description": "Scaffold a full-stack app (React or Angular + Node.js or .NET) from modular templates.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "create-my-app": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:smoke": "tsx tests/smoke.ts",
+    "prepack": "node ./scripts/copy-templates.mjs"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.7.2",
+    "commander": "^15.0.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

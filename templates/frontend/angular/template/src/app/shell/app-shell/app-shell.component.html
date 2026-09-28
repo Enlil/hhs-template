@@ -1,0 +1,12 @@
+<div class="flex min-h-screen flex-col bg-background">
+  <app-header></app-header>
+  <app-top-navigation></app-top-navigation>
+  <div class="flex flex-1">
+    <app-sidebar></app-sidebar>
+    <main class="min-w-0 flex-1">
+      <app-page-container>
+        <router-outlet></router-outlet>
+      </app-page-container>
+    </main>
+  </div>
+</div>
