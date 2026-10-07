@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { TemplateVariables } from '../registry/types.js';
+import { applyConditionals, type ConditionalContext } from './conditionals.js';
 
 const PLACEHOLDER_PATTERN = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
 
@@ -22,15 +23,20 @@ function render(text: string, variables: TemplateVariables): string {
 }
 
 /**
- * Walks an already-copied project tree in place, replacing `{{token}}`
- * placeholders in both file contents and file/directory names (e.g.
- * `{{dotnetNamespace}}.csproj`).
+ * Walks an already-copied project tree in place. For every text file it
+ * first resolves `#if <option>` marker blocks (see conditionals.ts), then
+ * replaces `{{token}}` placeholders — in file contents and in file/directory
+ * names (e.g. `{{dotnetNamespace}}.csproj`).
  *
  * Renames happen after processing each entry so a directory's own name is
  * only ever renamed by its parent, once its full subtree has already been
  * handled under the original path.
  */
-export async function renderTree(rootDir: string, variables: TemplateVariables): Promise<void> {
+export async function renderTree(
+  rootDir: string,
+  variables: TemplateVariables,
+  conditionals: ConditionalContext,
+): Promise<void> {
   async function walk(dir: string): Promise<void> {
     const entries = await fs.readdir(dir, { withFileTypes: true });
 
@@ -41,7 +47,8 @@ export async function renderTree(rootDir: string, variables: TemplateVariables):
         await walk(originalPath);
       } else if (entry.isFile() && !isBinaryFile(entry.name)) {
         const content = await fs.readFile(originalPath, 'utf8');
-        const rendered = render(content, variables);
+        const relativePath = path.relative(rootDir, originalPath).split(path.sep).join('/');
+        const rendered = render(applyConditionals(content, conditionals, relativePath), variables);
         if (rendered !== content) {
           await fs.writeFile(originalPath, rendered, 'utf8');
         }

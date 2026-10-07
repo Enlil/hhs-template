@@ -1,5 +1,5 @@
 export type FrontendId = 'react' | 'angular';
-export type BackendId = 'node' | 'dotnet';
+export type BackendId = 'node' | 'dotnet' | 'springboot';
 
 /**
  * The full set of `{{token}}` placeholders available to every template.
@@ -9,7 +9,9 @@ export type BackendId = 'node' | 'dotnet';
 export interface TemplateVariables {
   projectName: string;
   packageName: string;
+  appVersion: string;
   dotnetNamespace: string;
+  javaPackageName: string;
   frontendLabel: string;
   backendLabel: string;
   frontendPort: number;
@@ -31,6 +33,22 @@ export interface GenerationContext {
   log: (message: string) => void;
 }
 
+/**
+ * An optional extra a template can offer (e.g. Lombok for Spring Boot).
+ * Turned on or off at generation time; the template files react to it with
+ * `#if <id>` marker blocks (see core/conditionals.ts).
+ */
+export interface TemplateOption {
+  /** kebab-case. Becomes the CLI flags `--<id>` / `--no-<id>` and the name used in `#if <id>` markers, so it must be unique across ALL templates. */
+  id: string;
+  /** Short name used in prompts, e.g. "Lombok". */
+  label: string;
+  /** One plain sentence on what it does; shown in prompts and `--help`. */
+  description: string;
+  /** Whether it's on when the user doesn't say either way. */
+  default: boolean;
+}
+
 interface TemplateDefinitionBase {
   label: string;
   description: string;
@@ -46,6 +64,8 @@ interface TemplateDefinitionBase {
   workspaceMember: boolean;
   /** One-line markdown (with its own inline code spans) describing where this template's real runtime config lives, for the generated root README. */
   envDocLine: string;
+  /** Optional extras the user can switch on for this template. */
+  options?: TemplateOption[];
 }
 
 export interface FrontendTemplate extends TemplateDefinitionBase {

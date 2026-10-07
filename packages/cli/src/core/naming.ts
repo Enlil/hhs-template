@@ -13,3 +13,9 @@ export function toDotnetNamespace(projectName: string): string {
 
   return /^[0-9]/.test(pascalCase) ? `App${pascalCase}` : pascalCase;
 }
+
+/** "customer-portal" -> "customerportal", used as the leaf segment of the Java package `com.example.<this>` (and its matching source folder — see the springboot template). Prefixes with "app" if the result would start with a digit, since that's not a legal Java identifier. */
+export function toJavaPackageName(projectName: string): string {
+  const lower = projectName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return /^[0-9]/.test(lower) ? `app${lower}` : lower;
+}

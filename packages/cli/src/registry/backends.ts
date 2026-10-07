@@ -5,8 +5,8 @@ import type { BackendId, BackendTemplate } from './types.js';
 
 const templatesRoot = resolveTemplatesRoot();
 
-function isOnPath(command: string): boolean {
-  const result = spawnSync(command, ['--version'], { stdio: 'ignore' });
+function isOnPath(command: string, versionFlag = '--version'): boolean {
+  const result = spawnSync(command, [versionFlag], { stdio: 'ignore' });
   return result.error === undefined && result.status === 0;
 }
 
@@ -57,6 +57,45 @@ export const backendRegistry: Record<BackendId, BackendTemplate> = {
       const result = spawnSync('dotnet', ['restore'], { cwd: apiDir, stdio: 'inherit' });
       if (result.status !== 0) {
         log('Warning: "dotnet restore" did not finish successfully. Retry it manually inside apps/api.');
+      }
+    },
+  },
+  springboot: {
+    id: 'springboot',
+    label: 'Spring Boot (Java)',
+    description: 'Spring Boot 3 + Java, configured with YAML',
+    templateDir: path.join(templatesRoot, 'backend', 'springboot', 'template'),
+    targetDir: 'apps/api',
+    devPort: 5000,
+    devCommand: './apps/api/mvnw -f apps/api spring-boot:run',
+    // Not an npm package, so it stays out of the generated project's
+    // workspaces array and gets its own dependency-fetch step below.
+    workspaceMember: false,
+    healthPath: '/api/health',
+    envDocLine: '`apps/api/src/main/resources/application.yml` — the backend\'s port and allowed CORS origin',
+    options: [
+      {
+        id: 'lombok',
+        label: 'Lombok',
+        description: 'cuts Java boilerplate, e.g. @Slf4j and @RequiredArgsConstructor',
+        default: false,
+      },
+    ],
+    extraPrerequisite: 'JDK 21+ (https://adoptium.net) — no local Maven install needed, the bundled Maven Wrapper downloads it',
+    extraBuildNote:
+      '\n`npm run build` only builds npm workspace members, so it skips the Spring Boot API. Build it separately:\n\n```bash\ncd apps/api\n./mvnw clean package\n```',
+    postInstall: ({ projectDir, log }) => {
+      if (!isOnPath('java', '-version')) {
+        log('Skipped Maven dependency prefetch — no JDK was found on your PATH.');
+        log('Install a JDK from https://adoptium.net, then run "./mvnw dependency:go-offline" inside apps/api.');
+        return;
+      }
+
+      log('Fetching Maven dependencies (this also downloads Maven itself on first run)...');
+      const apiDir = path.join(projectDir, 'apps/api');
+      const result = spawnSync('./mvnw', ['-q', 'dependency:go-offline'], { cwd: apiDir, stdio: 'inherit' });
+      if (result.status !== 0) {
+        log('Warning: fetching Maven dependencies did not finish successfully. Retry it manually inside apps/api.');
       }
     },
   },

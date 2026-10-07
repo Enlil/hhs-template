@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { Footer } from './Footer';
 import { Header } from './Header';
 import { PageContainer } from './PageContainer';
 import { Sidebar } from './Sidebar';
@@ -19,6 +20,7 @@ export function AppShell(): React.JSX.Element {
           </PageContainer>
         </main>
       </div>
+      <Footer />
     </div>
   );
 }

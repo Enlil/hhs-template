@@ -3,18 +3,21 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { copyDir } from './copy-dir.js';
 import { installRootDependencies } from './install.js';
-import { toDotnetNamespace, toPackageName } from './naming.js';
+import { toDotnetNamespace, toJavaPackageName, toPackageName } from './naming.js';
 import { renderTree } from './render-tree.js';
 import { resolveTemplatesRoot } from './paths.js';
 import { validateProjectName } from './validate-project-name.js';
 import { backendRegistry } from '../registry/backends.js';
 import { frontendRegistry } from '../registry/frontends.js';
+import { allOptions } from '../registry/options.js';
 import type { BackendId, BackendTemplate, FrontendId, FrontendTemplate, TemplateVariables } from '../registry/types.js';
 
 export interface GenerateProjectOptions {
   projectName: string;
   frontend: FrontendId;
   backend: BackendId;
+  /** Extras to turn on or off, by option id (e.g. `{ lombok: true }`). Anything not listed uses the option's default. */
+  options?: Record<string, boolean>;
   /** Directory the project folder is created inside. Defaults to process.cwd(). */
   cwd?: string;
   /** Skip `npm install` / `dotnet restore` — used by tests and power users (--skip-install). */
@@ -27,17 +30,25 @@ export interface GenerateProjectResult {
   frontend: FrontendTemplate;
   backend: BackendTemplate;
   variables: TemplateVariables;
+  /** Ids of the options that ended up switched on. */
+  options: string[];
   installed: boolean;
 }
 
-const COPY_SKIP_NAMES = new Set(['node_modules', '.git', 'dist', 'bin', 'obj', '.DS_Store']);
+const COPY_SKIP_NAMES = new Set(['node_modules', '.git', 'dist', 'bin', 'obj', 'target', '.DS_Store']);
 const skipOption = { skip: (name: string) => COPY_SKIP_NAMES.has(name) };
+
+// Bumped by hand for now — see README.md "Versioning templates" for why this
+// isn't derived from anything more automatic yet.
+const APP_VERSION = '0.1.0';
 
 function buildVariables(projectName: string, frontend: FrontendTemplate, backend: BackendTemplate): TemplateVariables {
   return {
     projectName,
     packageName: toPackageName(projectName),
+    appVersion: APP_VERSION,
     dotnetNamespace: toDotnetNamespace(projectName),
+    javaPackageName: toJavaPackageName(projectName),
     frontendLabel: frontend.label,
     backendLabel: backend.label,
     frontendPort: frontend.devPort,
@@ -53,6 +64,28 @@ function buildVariables(projectName: string, frontend: FrontendTemplate, backend
   };
 }
 
+/** Works out which options are on, and rejects any the chosen frontend/backend doesn't offer. */
+function resolveEnabledOptions(
+  frontend: FrontendTemplate,
+  backend: BackendTemplate,
+  requested: Record<string, boolean> = {},
+): Set<string> {
+  const available = [...(frontend.options ?? []), ...(backend.options ?? [])];
+  const availableIds = new Set(available.map((option) => option.id));
+
+  for (const id of Object.keys(requested)) {
+    if (!availableIds.has(id)) {
+      const offeredBy = allOptions().find((entry) => entry.option.id === id)?.owner.label;
+      throw new Error(
+        `Option "${id}" isn't available for ${frontend.label} + ${backend.label}.` +
+          (offeredBy ? ` It only applies to ${offeredBy}.` : ' There is no such option.'),
+      );
+    }
+  }
+
+  return new Set(available.filter((option) => requested[option.id] ?? option.default).map((option) => option.id));
+}
+
 async function writeRootPackageJson(
   projectDir: string,
   variables: TemplateVariables,
@@ -64,7 +97,7 @@ async function writeRootPackageJson(
   const rootPackageJson = {
     name: variables.packageName,
     private: true,
-    version: '0.1.0',
+    version: variables.appVersion,
     workspaces,
     scripts: {
       // -k (kill-others): if one side dies (e.g. a port conflict), the other
@@ -78,6 +111,13 @@ async function writeRootPackageJson(
     },
     devDependencies: {
       concurrently: '^10.0.5',
+    },
+    // concurrently 10.x pins shell-quote 1.9.0, which has a critical advisory
+    // (GHSA-pqg4-j6r4-53mv, fixed in 1.11.0). Forcing a patched version keeps
+    // fresh projects clean under `npm audit`. Drop this once concurrently
+    // ships a release that depends on shell-quote >= 1.11.
+    overrides: {
+      'shell-quote': '^1.12.0',
     },
   };
 
@@ -106,6 +146,7 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   if (!backend) {
     throw new Error(`Unknown backend "${options.backend}". Available: ${Object.keys(backendRegistry).join(', ')}`);
   }
+  const enabledOptions = resolveEnabledOptions(frontend, backend, options.options);
 
   const cwd = options.cwd ?? process.cwd();
   const projectDir = path.resolve(cwd, options.projectName);
@@ -146,7 +187,10 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   await writeRootConfigFiles(projectDir, path.join(sharedRoot, 'config'));
 
   log('Applying template variables...');
-  await renderTree(projectDir, variables);
+  await renderTree(projectDir, variables, {
+    enabled: enabledOptions,
+    known: new Set(allOptions().map((entry) => entry.option.id)),
+  });
 
   let installed = false;
   if (!options.skipInstall) {
@@ -160,5 +204,5 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
     }
   }
 
-  return { projectDir, frontend, backend, variables, installed };
+  return { projectDir, frontend, backend, variables, options: [...enabledOptions], installed };
 }

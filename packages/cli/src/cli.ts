@@ -1,19 +1,28 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { input, select } from '@inquirer/prompts';
+import { confirm, input, select } from '@inquirer/prompts';
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { generateProject } from './core/generate-project.js';
 import { printNextSteps } from './core/next-steps.js';
 import { validateProjectName } from './core/validate-project-name.js';
-import { backendChoices, frontendChoices } from './registry/index.js';
-import type { BackendId, FrontendId } from './registry/types.js';
+import {
+  allOptions,
+  backendChoices,
+  backendRegistry,
+  frontendChoices,
+  frontendRegistry,
+  optionFlagKey,
+} from './registry/index.js';
+import type { BackendId, BackendTemplate, FrontendId, FrontendTemplate } from './registry/types.js';
 
 interface CliOptions {
   frontend?: string;
   backend?: string;
   skipInstall?: boolean;
+  // Plus one boolean per template option (e.g. `lombok`), registered from the registry in run().
+  [option: string]: unknown;
 }
 
 function readVersion(): string {
@@ -79,6 +88,42 @@ async function resolveBackend(fromFlag: string | undefined): Promise<BackendId> 
   });
 }
 
+/**
+ * Settles each option the chosen frontend/backend offers: a flag wins,
+ * otherwise ask. Only offered options are asked about, so picking Node never
+ * mentions Lombok.
+ */
+async function resolveOptions(
+  frontend: FrontendTemplate,
+  backend: BackendTemplate,
+  flags: CliOptions,
+): Promise<Record<string, boolean>> {
+  const offered = [...(frontend.options ?? []), ...(backend.options ?? [])];
+  const offeredIds = new Set(offered.map((option) => option.id));
+
+  // A flag for an option this combination doesn't have is a mistake: say so instead of ignoring it.
+  for (const { option, owner } of allOptions()) {
+    if (flags[optionFlagKey(option.id)] !== undefined && !offeredIds.has(option.id)) {
+      throw new Error(`--${option.id} only works with ${owner.label}.`);
+    }
+  }
+
+  const chosen: Record<string, boolean> = {};
+  for (const option of offered) {
+    const fromFlag = flags[optionFlagKey(option.id)];
+    if (typeof fromFlag === 'boolean') {
+      chosen[option.id] = fromFlag;
+    } else if (process.stdin.isTTY) {
+      chosen[option.id] = await confirm({
+        message: `Include ${option.label}? (${option.description})`,
+        default: option.default,
+      });
+    }
+    // No terminal (CI, pipes): leave it out, so the option's default applies instead of hanging on a prompt.
+  }
+  return chosen;
+}
+
 export async function run(argv: string[]): Promise<void> {
   const program = new Command();
 
@@ -91,21 +136,30 @@ export async function run(argv: string[]): Promise<void> {
     .option('--skip-install', 'skip installing dependencies after generation')
     .version(readVersion());
 
+  // One --<id> / --no-<id> pair per option in the registry. Defining --<id> first
+  // keeps the default "unset", so we know when to ask instead of assuming.
+  for (const { option, owner } of allOptions()) {
+    program.option(`--${option.id}`, `${owner.label}: include ${option.label} (${option.description})`);
+    program.option(`--no-${option.id}`, `${owner.label}: leave out ${option.label}`);
+  }
+
   program.parse(argv);
-  const options = program.opts<CliOptions>();
+  const flags = program.opts<CliOptions>();
 
   console.log(pc.bold('\ncreate-my-app\n'));
 
   try {
     const projectName = await resolveProjectName(program.args[0]);
-    const frontend = await resolveFrontend(options.frontend);
-    const backend = await resolveBackend(options.backend);
+    const frontendId = await resolveFrontend(flags.frontend);
+    const backendId = await resolveBackend(flags.backend);
+    const options = await resolveOptions(frontendRegistry[frontendId], backendRegistry[backendId], flags);
 
     const result = await generateProject({
       projectName,
-      frontend,
-      backend,
-      skipInstall: options.skipInstall ?? false,
+      frontend: frontendId,
+      backend: backendId,
+      options,
+      skipInstall: flags.skipInstall ?? false,
       log: (message) => console.log(pc.dim(`  ${message}`)),
     });
 

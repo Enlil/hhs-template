@@ -1,7 +1,7 @@
 {
   "name": "{{packageName}}-web",
   "private": true,
-  "version": "0.1.0",
+  "version": "{{appVersion}}",
   "scripts": {
     "dev": "ng serve --port {{frontendPort}}",
     "build": "ng build",

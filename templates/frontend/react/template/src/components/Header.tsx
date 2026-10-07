@@ -1,6 +1,5 @@
 import logo from '../assets/logo.svg';
-
-const APP_NAME = '{{projectName}}';
+import { APP_NAME } from '../lib/config';
 
 export function Header(): React.JSX.Element {
   return (

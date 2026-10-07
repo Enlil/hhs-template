@@ -48,6 +48,34 @@ describe('generateProject error handling', () => {
     ).rejects.toThrow(/Unknown backend/);
   });
 
+  it('rejects an option the chosen backend does not offer, without touching the filesystem', async () => {
+    await expect(
+      generateProject({
+        projectName: 'valid-name',
+        frontend: 'react',
+        backend: 'node',
+        options: { lombok: true },
+        cwd: workDir,
+        skipInstall: true,
+      }),
+    ).rejects.toThrow(/"lombok" isn't available for React \+ Node\.js\. It only applies to Spring Boot/);
+
+    expect(await fs.readdir(workDir)).toEqual([]);
+  });
+
+  it('rejects an option that does not exist at all', async () => {
+    await expect(
+      generateProject({
+        projectName: 'valid-name',
+        frontend: 'react',
+        backend: 'springboot',
+        options: { lombk: true },
+        cwd: workDir,
+        skipInstall: true,
+      }),
+    ).rejects.toThrow(/There is no such option/);
+  });
+
   it('refuses to generate into a non-empty existing directory', async () => {
     const target = path.join(workDir, 'existing-app');
     await fs.mkdir(target, { recursive: true });

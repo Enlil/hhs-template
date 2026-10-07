@@ -1,0 +1,15 @@
+server:
+  port: {{backendPort}}
+
+cors:
+  frontend-url: {{frontendUrl}}
+
+springdoc:
+  swagger-ui:
+    path: /api/docs
+  api-docs:
+    path: /api/openapi
+
+spring:
+  application:
+    name: {{packageName}}-api

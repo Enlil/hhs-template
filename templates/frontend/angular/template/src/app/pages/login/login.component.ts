@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonComponent } from '../../shared/button/button.component';
 import { CardComponent } from '../../shared/card/card.component';
+import { FooterComponent } from '../../shell/footer/footer.component';
 import { InputComponent } from '../../shared/input/input.component';
 
 @Component({
   selector: 'app-login',
-  imports: [ButtonComponent, CardComponent, InputComponent],
+  imports: [ButtonComponent, CardComponent, InputComponent, FooterComponent],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {

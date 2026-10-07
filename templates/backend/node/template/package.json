@@ -1,7 +1,7 @@
 {
   "name": "{{packageName}}-api",
   "private": true,
-  "version": "0.1.0",
+  "version": "{{appVersion}}",
   "scripts": {
     "dev": "tsc -p tsconfig.build.json && concurrently -k -n tsc,node -c yellow,blue \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --watch dist/main.js\"",
     "build": "tsc -p tsconfig.build.json",
