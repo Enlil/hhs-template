@@ -15,13 +15,24 @@ import {
   frontendRegistry,
   optionFlagKey,
 } from './registry/index.js';
-import type { BackendId, BackendTemplate, FrontendId, FrontendTemplate } from './registry/types.js';
+import type {
+  BackendId,
+  BackendTemplate,
+  FrontendId,
+  FrontendTemplate,
+  OptionValue,
+} from './registry/types.js';
+import { runUi } from './ui/run-ui.js';
 
 interface CliOptions {
   frontend?: string;
   backend?: string;
   skipInstall?: boolean;
-  // Plus one boolean per template option (e.g. `lombok`), registered from the registry in run().
+  ui?: boolean;
+  /** Defaults to true; only `--no-open` makes it false. */
+  open?: boolean;
+  // Plus one entry per template option, registered from the registry in run(): a boolean for an
+  // on/off option (e.g. `lombok`), text for a choice (e.g. `javaVersion`).
   [option: string]: unknown;
 }
 
@@ -91,13 +102,14 @@ async function resolveBackend(fromFlag: string | undefined): Promise<BackendId> 
 /**
  * Settles each option the chosen frontend/backend offers: a flag wins,
  * otherwise ask. Only offered options are asked about, so picking Node never
- * mentions Lombok.
+ * mentions Lombok or the Java version. (A value an option doesn't allow, like
+ * `--java-version 99`, is rejected by generateProject before it touches disk.)
  */
-async function resolveOptions(
+async function askForOptions(
   frontend: FrontendTemplate,
   backend: BackendTemplate,
   flags: CliOptions,
-): Promise<Record<string, boolean>> {
+): Promise<Record<string, OptionValue>> {
   const offered = [...(frontend.options ?? []), ...(backend.options ?? [])];
   const offeredIds = new Set(offered.map((option) => option.id));
 
@@ -108,20 +120,44 @@ async function resolveOptions(
     }
   }
 
-  const chosen: Record<string, boolean> = {};
+  const chosen: Record<string, OptionValue> = {};
   for (const option of offered) {
     const fromFlag = flags[optionFlagKey(option.id)];
-    if (typeof fromFlag === 'boolean') {
+    if (typeof fromFlag === 'boolean' || typeof fromFlag === 'string') {
       chosen[option.id] = fromFlag;
     } else if (process.stdin.isTTY) {
-      chosen[option.id] = await confirm({
-        message: `Include ${option.label}? (${option.description})`,
-        default: option.default,
-      });
+      chosen[option.id] =
+        option.kind === 'toggle'
+          ? await confirm({ message: `Include ${option.label}? (${option.description})`, default: option.default })
+          : await select({
+              message: `${option.label}:`,
+              choices: option.choices.map((choice) => ({ name: choice.label, value: choice.value })),
+              default: option.default,
+            });
     }
     // No terminal (CI, pipes): leave it out, so the option's default applies instead of hanging on a prompt.
   }
   return chosen;
+}
+
+/**
+ * --ui is the "fill in a form" way of answering, so answers also given as
+ * flags would be silently ignored. Say so instead.
+ */
+function rejectAnswerFlags(args: string[], flags: CliOptions): void {
+  const given = [
+    ...(args.length > 0 ? ['a project name'] : []),
+    ...(flags.frontend !== undefined ? ['--frontend'] : []),
+    ...(flags.backend !== undefined ? ['--backend'] : []),
+    ...(flags.skipInstall ? ['--skip-install'] : []),
+    ...allOptions()
+      .filter(({ option }) => flags[optionFlagKey(option.id)] !== undefined)
+      .map(({ option }) => (option.kind === 'toggle' ? `--[no-]${option.id}` : `--${option.id}`)),
+  ];
+
+  if (given.length > 0) {
+    throw new Error(`--ui opens a form where you answer these yourself, so don't combine it with ${given.join(', ')}.`);
+  }
 }
 
 export async function run(argv: string[]): Promise<void> {
@@ -134,25 +170,44 @@ export async function run(argv: string[]): Promise<void> {
     .option('--frontend <id>', `frontend template (${frontendChoices.map((c) => c.id).join('|')})`)
     .option('--backend <id>', `backend template (${backendChoices.map((c) => c.id).join('|')})`)
     .option('--skip-install', 'skip installing dependencies after generation')
+    .option('--ui', 'fill in a form in your browser (runs on your computer only) instead of answering in the terminal')
+    .option('--no-open', 'with --ui: print the link instead of opening the browser')
     .version(readVersion());
 
-  // One --<id> / --no-<id> pair per option in the registry. Defining --<id> first
-  // keeps the default "unset", so we know when to ask instead of assuming.
+  // One --<id> / --no-<id> pair per on/off option in the registry, and one --<id> <value> per
+  // choice. Defining --<id> first keeps the default "unset", so we know when to ask instead of assuming.
   for (const { option, owner } of allOptions()) {
-    program.option(`--${option.id}`, `${owner.label}: include ${option.label} (${option.description})`);
-    program.option(`--no-${option.id}`, `${owner.label}: leave out ${option.label}`);
+    if (option.kind === 'toggle') {
+      program.option(`--${option.id}`, `${owner.label}: include ${option.label} (${option.description})`);
+      program.option(`--no-${option.id}`, `${owner.label}: leave out ${option.label}`);
+    } else {
+      const values = option.choices.map((choice) => choice.value).join('|');
+      program.option(
+        `--${option.id} <value>`,
+        `${owner.label}: ${option.label}, ${option.description} (${values}; default ${option.default})`,
+      );
+    }
   }
 
   program.parse(argv);
   const flags = program.opts<CliOptions>();
 
-  console.log(pc.bold('\ncreate-my-app\n'));
-
   try {
+    if (flags.ui) {
+      rejectAnswerFlags(program.args, flags);
+      await runUi({ directory: process.cwd(), version: readVersion(), open: flags.open !== false });
+      return;
+    }
+    if (flags.open === false) {
+      throw new Error('--no-open only works together with --ui.');
+    }
+
+    console.log(pc.bold('\ncreate-my-app\n'));
+
     const projectName = await resolveProjectName(program.args[0]);
     const frontendId = await resolveFrontend(flags.frontend);
     const backendId = await resolveBackend(flags.backend);
-    const options = await resolveOptions(frontendRegistry[frontendId], backendRegistry[backendId], flags);
+    const options = await askForOptions(frontendRegistry[frontendId], backendRegistry[backendId], flags);
 
     const result = await generateProject({
       projectName,

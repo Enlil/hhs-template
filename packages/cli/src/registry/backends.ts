@@ -1,12 +1,13 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+import { detectJava } from '../core/java.js';
 import { resolveTemplatesRoot } from '../core/paths.js';
 import type { BackendId, BackendTemplate } from './types.js';
 
 const templatesRoot = resolveTemplatesRoot();
 
-function isOnPath(command: string, versionFlag = '--version'): boolean {
-  const result = spawnSync(command, [versionFlag], { stdio: 'ignore' });
+function isOnPath(command: string): boolean {
+  const result = spawnSync(command, ['--version'], { stdio: 'ignore' });
   return result.error === undefined && result.status === 0;
 }
 
@@ -75,20 +76,45 @@ export const backendRegistry: Record<BackendId, BackendTemplate> = {
     envDocLine: '`apps/api/src/main/resources/application.yml` — the backend\'s port and allowed CORS origin',
     options: [
       {
+        kind: 'choice',
+        id: 'java-version',
+        label: 'Java version',
+        description: 'the Java release the project is built for',
+        // Spring Boot 3.5 needs Java 17 at least and supports up to 25. These are the LTS releases, newest (the default) first.
+        choices: [
+          { value: '25', label: '25 (LTS)' },
+          { value: '21', label: '21 (LTS)' },
+          { value: '17', label: '17 (LTS)' },
+        ],
+        default: '25',
+      },
+      {
+        kind: 'toggle',
         id: 'lombok',
         label: 'Lombok',
         description: 'cuts Java boilerplate, e.g. @Slf4j and @RequiredArgsConstructor',
         default: false,
       },
     ],
-    extraPrerequisite: 'JDK 21+ (https://adoptium.net) — no local Maven install needed, the bundled Maven Wrapper downloads it',
+    extraPrerequisite:
+      'JDK {{javaVersion}}+ (https://adoptium.net) — no local Maven install needed, the bundled Maven Wrapper downloads it',
     extraBuildNote:
       '\n`npm run build` only builds npm workspace members, so it skips the Spring Boot API. Build it separately:\n\n```bash\ncd apps/api\n./mvnw clean package\n```',
-    postInstall: ({ projectDir, log }) => {
-      if (!isOnPath('java', '-version')) {
+    postInstall: ({ projectDir, variables, log }) => {
+      const wanted = Number(variables.javaVersion);
+      const java = detectJava();
+
+      if (!java) {
         log('Skipped Maven dependency prefetch — no JDK was found on your PATH.');
-        log('Install a JDK from https://adoptium.net, then run "./mvnw dependency:go-offline" inside apps/api.');
+        log(`Install JDK ${wanted} or newer from https://adoptium.net, then run "./mvnw dependency:go-offline" inside apps/api.`);
         return;
+      }
+      // Maven itself runs fine on an older JDK, so carry on: only building and running the API needs the newer one.
+      if (java.major !== undefined && java.major < wanted) {
+        log(
+          `Warning: this project is set up for Java ${wanted}, but the JDK on your PATH is Java ${java.major}. ` +
+            `Install JDK ${wanted} or newer (https://adoptium.net) before running the API, or generate it again with a lower --java-version.`,
+        );
       }
 
       log('Fetching Maven dependencies (this also downloads Maven itself on first run)...');

@@ -1,6 +1,6 @@
 # {{projectName}} — api (Spring Boot / Java)
 
-Spring Boot 3 (Java 21), configured with YAML (`application.yml`) rather than `.properties`.
+Spring Boot 3 (Java {{javaVersion}}), configured with YAML (`application.yml`) rather than `.properties`.
 
 <!-- #if lombok -->
 Lombok is switched on: the starter code uses `@Slf4j` and `@RequiredArgsConstructor`. If your IDE shows red errors on them, turn on annotation processing (IntelliJ: Settings → Build, Execution, Deployment → Compiler → Annotation Processors). `pom.xml` names Lombok as an annotation processor explicitly (as start.spring.io does too): javac still finds it on its own today, but warns that a future release may stop doing that.
@@ -14,7 +14,7 @@ Lombok is switched on: the starter code uses `@Slf4j` and `@RequiredArgsConstruc
 java -jar target/*.jar   # run the built jar
 ```
 
-No local Maven install is required — `mvnw`/`mvnw.cmd` (the Maven Wrapper) download the pinned Maven version on first run. You do need a **JDK 21+** on `PATH`.
+No local Maven install is required — `mvnw`/`mvnw.cmd` (the Maven Wrapper) download the pinned Maven version on first run. You do need a **JDK {{javaVersion}}+** on `PATH`. To build for another Java version later, change `<java.version>` in `pom.xml` (Spring Boot 3.5 supports Java 17 up to 25).
 
 From the generated project root, `npm run dev` / `npm run dev:api` run this via `./apps/api/mvnw spring-boot:run` — see the root README.
 

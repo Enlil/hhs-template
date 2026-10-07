@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>create-my-app</title>
+    <link rel="icon" type="image/png" href="/hhs-seal.png" />
+    <link rel="stylesheet" href="/tokens.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <img class="site-header__seal" src="/hhs-seal.png" alt="" width="40" height="40" />
+        <div>
+          <h1 class="site-header__title">create-my-app</h1>
+          <p class="site-header__sub">Pick a setup, press Generate, and the project is written into your folder.</p>
+        </div>
+        <p class="site-header__version" id="version"></p>
+      </div>
+    </header>
+
+    <main class="page">
+      <p class="alert alert--danger" id="fatal" role="alert" hidden></p>
+
+      <form class="card" id="form" aria-label="New project" novalidate hidden>
+        <div class="field" data-field="projectName">
+          <label for="projectName">Project name</label>
+          <input id="projectName" type="text" placeholder="customer-portal" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="projectName-hint" />
+          <p class="hint" id="projectName-hint">Lowercase letters, numbers and hyphens.</p>
+        </div>
+
+        <div class="field" data-field="directory">
+          <label for="directory">Folder</label>
+          <input id="directory" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="directory-hint" />
+          <p class="hint" id="directory-hint">Creates <code id="target"></code></p>
+        </div>
+
+        <fieldset class="field" data-field="frontend">
+          <legend>Frontend</legend>
+          <div class="choices" id="frontends"></div>
+        </fieldset>
+
+        <fieldset class="field" data-field="backend">
+          <legend>Backend</legend>
+          <div class="choices" id="backends"></div>
+        </fieldset>
+
+        <fieldset class="field" data-field="options" id="options" hidden>
+          <legend>Options</legend>
+          <div class="options" id="optionsList"></div>
+        </fieldset>
+
+        <fieldset class="field" data-field="install">
+          <legend>After generating</legend>
+          <div class="checks">
+            <label class="check">
+              <input type="checkbox" id="install" checked />
+              <span>
+                <strong>Install dependencies</strong>
+                <span class="muted">— runs <code>npm install</code> and the backend's own setup; takes a minute or two</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <p class="alert alert--danger" id="formError" role="alert" hidden></p>
+
+        <div class="actions" id="formActions">
+          <button class="btn btn--primary" type="submit" id="generate">Generate</button>
+        </div>
+      </form>
+
+      <section class="card" id="run" aria-labelledby="runTitle" hidden>
+        <h2 class="card__title" id="runTitle" tabindex="-1">Creating your project…</h2>
+
+        <p class="muted" id="runIntro"></p>
+        <div class="command">
+          <code id="runCommand"></code>
+          <button class="btn btn--small" type="button" data-copy="runCommand">Copy</button>
+        </div>
+
+        <pre class="log" id="log" role="log" aria-live="off" aria-label="Generator output" tabindex="0"></pre>
+        <p class="muted run-status" id="runStatus" hidden>
+          Working… <span id="runElapsed">0s</span> — some steps, like installing packages, can go quiet for a minute or two.
+        </p>
+
+        <div class="result" id="runDone" hidden>
+          <p class="result__title">Created <code id="resultPath"></code></p>
+          <p>Next, in a terminal:</p>
+          <div class="command">
+            <pre id="resultSteps"></pre>
+            <button class="btn btn--small" type="button" data-copy="resultSteps">Copy</button>
+          </div>
+        </div>
+
+        <ul class="alert alert--warning" id="resultWarnings" hidden></ul>
+        <p class="alert alert--danger" id="runError" role="alert" hidden></p>
+
+        <div class="actions" id="runActions" hidden>
+          <button class="btn btn--primary" type="button" id="another">Create another project</button>
+          <button class="btn btn--primary" type="button" id="back">Back to the form</button>
+          <button class="btn" type="button" id="stop">Stop the generator</button>
+        </div>
+      </section>
+
+      <section class="card" id="stopped" aria-labelledby="stoppedTitle" hidden>
+        <h2 class="card__title" id="stoppedTitle" tabindex="-1">The generator has stopped</h2>
+        <p>You can close this tab. To use it again, run <code>npx create-my-app --ui</code> in a terminal.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>This page runs only on your computer. Nothing is uploaded.</p>
+    </footer>
+  </body>
+</html>

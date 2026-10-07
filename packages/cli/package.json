@@ -9,7 +9,8 @@
   },
   "files": [
     "dist",
-    "templates"
+    "templates",
+    "ui"
   ],
   "engines": {
     "node": ">=20.19.0"

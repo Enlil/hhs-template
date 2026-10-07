@@ -30,6 +30,29 @@ describe('template registry', () => {
     }
   });
 
+  it('every option says what kind it is', () => {
+    for (const { option } of allOptions()) {
+      expect(['toggle', 'choice'], `option "${option.id}"`).toContain(option.kind);
+    }
+  });
+
+  it('every choice option has something to choose between, and a default that is one of the choices', () => {
+    const choiceOptions = allOptions().flatMap(({ option }) => (option.kind === 'choice' ? [option] : []));
+    expect(choiceOptions.length).toBeGreaterThan(0);
+
+    for (const option of choiceOptions) {
+      const values = option.choices.map((choice) => choice.value);
+
+      expect(values.length, `"${option.id}" has fewer than two choices`).toBeGreaterThan(1);
+      expect(new Set(values).size, `"${option.id}" repeats a value`).toBe(values.length);
+      expect(values, `the default of "${option.id}"`).toContain(option.default);
+      for (const choice of option.choices) {
+        expect(choice.value, `a value of "${option.id}"`).not.toBe('');
+        expect(choice.label, `a label of "${option.id}"`).not.toBe('');
+      }
+    }
+  });
+
   it('every registry entry\'s id matches its own key', () => {
     for (const [key, template] of Object.entries(frontendRegistry)) {
       expect(template.id).toBe(key);

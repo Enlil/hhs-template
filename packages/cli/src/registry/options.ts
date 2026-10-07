@@ -15,7 +15,7 @@ export function allOptions(): OptionEntry[] {
   );
 }
 
-/** "my-option" -> "myOption": the key commander stores `--my-option` under. */
+/** "my-option" -> "myOption": the key commander stores `--my-option` under, and the name of a choice option's `{{placeholder}}`. */
 export function optionFlagKey(id: string): string {
   return id.replace(/-([a-z0-9])/g, (_match, char: string) => char.toUpperCase());
 }

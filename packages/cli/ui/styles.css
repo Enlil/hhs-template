@@ -1,0 +1,501 @@
+/*
+ * Page styles for the local create-my-app form. Colors, radii, spacing and
+ * fonts come from tokens.css — the same design tokens the generated apps use.
+ */
+:root {
+  color-scheme: light;
+
+  /* A few tints the shared tokens don't have. */
+  --tint-primary: #eff6ff;
+  --tint-danger: #fef2f2;
+  --on-danger: #991b1b;
+  --tint-success: #f0fdf4;
+  --on-success: #166534;
+  --tint-warning: #fffbeb;
+  --on-warning: #92400e;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Without this, a rule like `.card { display: grid }` would beat the hidden attribute. */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+code {
+  padding: 1px 6px;
+  font-size: 0.875em;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+/* ---------- header and footer ---------- */
+
+.site-header {
+  color: var(--color-primary-foreground);
+  background: var(--color-primary);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
+
+.site-header__seal {
+  flex: none;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.site-header__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: 1.2;
+}
+
+.site-header__sub {
+  margin: 2px 0 0;
+  font-size: var(--font-size-sm);
+}
+
+.site-header__version {
+  margin: 0 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.site-footer {
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+/* ---------- layout ---------- */
+
+.page {
+  display: grid;
+  flex: 1;
+  gap: var(--spacing-md);
+  align-content: start;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--spacing-lg) var(--spacing-md);
+}
+
+.card {
+  min-width: 0;
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card__title {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-xl);
+  line-height: 1.25;
+}
+
+.card__title:focus {
+  outline: none;
+}
+
+/* ---------- form fields ---------- */
+
+.field {
+  min-width: 0;
+  margin: 0 0 var(--spacing-lg);
+  padding: 0;
+  border: 0;
+}
+
+.field > label,
+.field > legend {
+  display: block;
+  padding: 0;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 600;
+}
+
+input[type='text'] {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-md);
+}
+
+.field--invalid input[type='text'] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 1px var(--color-danger);
+}
+
+.field--invalid > legend,
+.field--invalid > label {
+  color: var(--on-danger);
+}
+
+.hint {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+input:focus-visible,
+.btn:focus-visible,
+.log:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- radio cards (frontend / backend) ---------- */
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.choice {
+  position: relative;
+  display: block;
+  min-width: 0;
+  cursor: pointer;
+}
+
+/* The real radio sits invisibly over the whole card, so clicks and keyboard keep working natively. */
+.choice > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.choice__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  padding: var(--spacing-md);
+  /* Long links (the install pages) wrap inside the card instead of spilling into the next one. */
+  overflow-wrap: anywhere;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.choice:hover .choice__body {
+  border-color: var(--color-muted);
+}
+
+.choice > input:checked + .choice__body {
+  background: var(--tint-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.choice > input:focus-visible + .choice__body {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.choice__label {
+  font-weight: 600;
+}
+
+.choice__desc,
+.choice__note {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+.choice__note {
+  margin-top: var(--spacing-xs);
+}
+
+/* The invisible radio overlay would otherwise swallow clicks meant for links. */
+.choice__note a {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- options: pick-one pills and checkboxes ---------- */
+
+.options {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+/* A pick-one option (like the Java version) is its own small group inside the Options box. */
+.option {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.option > legend {
+  padding: 0;
+  margin-bottom: var(--spacing-xs);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.pill {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Same trick as the cards: the real radio sits invisibly over the pill, so clicks and keys work natively. */
+.pill > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pill__text {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.pill:hover .pill__text {
+  border-color: var(--color-muted);
+}
+
+.pill > input:checked + .pill__text {
+  background: var(--tint-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.pill > input:focus-visible + .pill__text {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.checks {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.check > input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 5px 0 0;
+  accent-color: var(--color-primary);
+}
+
+/* ---------- buttons ---------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.btn {
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-md);
+}
+
+.btn:hover {
+  background: var(--color-background);
+}
+
+.btn--primary {
+  color: var(--color-primary-foreground);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn--primary:hover {
+  background: #1d4ed8;
+}
+
+.btn--small {
+  flex: none;
+  padding: 4px 10px;
+  font-size: var(--font-size-sm);
+}
+
+.btn:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* ---------- messages ---------- */
+
+.alert {
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  /* Keeps the line breaks of multi-line messages. */
+  white-space: pre-line;
+}
+
+.alert--danger {
+  color: var(--on-danger);
+  background: var(--tint-danger);
+  border-color: #fecaca;
+}
+
+/* An error shown inside a field sits close under it. */
+.field > .alert {
+  margin: var(--spacing-sm) 0 0;
+}
+
+.alert--warning {
+  padding-left: 2rem;
+  color: var(--on-warning);
+  background: var(--tint-warning);
+  border-color: #fde68a;
+  list-style: disc;
+}
+
+/* ---------- running / result ---------- */
+
+.command {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  margin: var(--spacing-sm) 0;
+}
+
+.command > code,
+.command > pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.log {
+  min-height: 8rem;
+  max-height: 22rem;
+  margin: var(--spacing-md) 0;
+  padding: var(--spacing-md);
+  overflow: auto;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #0f172a;
+  border-radius: var(--radius-md);
+}
+
+.run-status {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.result {
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-md);
+  color: var(--on-success);
+  background: var(--tint-success);
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md);
+}
+
+.result p {
+  margin: 0 0 var(--spacing-xs);
+}
+
+.result__title {
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: var(--spacing-md);
+  }
+
+  .site-header__sub {
+    display: none;
+  }
+}

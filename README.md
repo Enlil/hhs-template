@@ -14,6 +14,8 @@ npm create my-app@latest
 
 ...generates a new project with the chosen frontend and backend, already wired to talk to each other, sharing one design language and one API contract.
 
+Prefer a form to terminal questions? `npm create my-app@latest -- --ui` opens one in your browser, running on your own computer — see [Browser form](#browser-form---ui).
+
 ## Why this exists
 
 Four frontend/backend combinations could be four copy-pasted templates. That doubles (then quadruples) every future change. Instead, the source of truth is:
@@ -33,7 +35,9 @@ packages/
     src/
       registry/            frontend & backend template registry (the "config model")
       core/                copy/render engine, validation, install, next-steps
+      ui/                  local server behind `--ui`, and the browser opener
       cli.ts, index.ts     interactive prompts + argument parsing
+    ui/                    the form page for `--ui` (plain HTML/CSS/JS, no build step)
     tests/                 unit/integration tests + tests/smoke.ts
 
 templates/
@@ -62,7 +66,7 @@ templates/
 ### Generation flow
 
 1. Validate the project name (`core/validate-project-name.ts`) and create the directory.
-2. Compute template variables once (`projectName`, `packageName`, `appVersion`, `dotnetNamespace`, `javaPackageName`, ports, URLs, dev commands — see `registry/types.ts`'s `TemplateVariables`).
+2. Compute template variables once (`projectName`, `packageName`, `appVersion`, `dotnetNamespace`, `javaPackageName`, ports, URLs, dev commands — see `registry/types.ts`'s `TemplateVariables` — plus one per pick-one option, like `javaVersion`).
 3. Copy the chosen frontend template → `apps/web`, the chosen backend template → `apps/api`, and `shared/*` → `shared/*` and into the frontend app's own `src/` (see [Design tokens](#changing-shared-design-tokens) for why there are two copies).
 4. Generate the root `package.json` (workspaces + scripts computed from the registry, not hardcoded per combination), `.gitignore`, `.env.example`, `README.md`.
 5. Render every `{{placeholder}}` across the whole tree in one pass (`core/render-tree.ts`) — including in file and directory *names*, which is how `{{dotnetNamespace}}.Api.csproj` becomes `CustomerPortal.Api.csproj`.
@@ -76,20 +80,27 @@ templates/
 
 ### Options and `#if` markers
 
-Some templates offer optional extras — today, Spring Boot offers **Lombok**. An option is declared on its registry entry (`options: [{ id, label, description, default }]`) and is switched on or off at generation time. The template files react to it with marker lines, written as ordinary comments so the template stays valid XML/Java/YAML before it's rendered:
+Some templates offer settings. They're declared on the template's registry entry (`options: [...]`), come in two kinds, and are decided at generation time. Today both belong to Spring Boot:
 
-```
-// #if lombok          <!-- #if lombok -->          # #if lombok
-// #else
-// #endif
-```
+- **On/off extras** — **Lombok** (`{ kind: 'toggle', id, label, description, default }`). The template files react to it with marker lines, written as ordinary comments so the template stays valid XML/Java/YAML before it's rendered:
 
-`#if !lombok` negates. The generator keeps or drops the lines in between, and the marker lines never reach the output. See the Spring template's `pom.xml` and `ExampleController.java` for real use. Rules worth knowing:
+  ```
+  // #if lombok          <!-- #if lombok -->          # #if lombok
+  // #else
+  // #endif
+  ```
+
+  `#if !lombok` negates. The generator keeps or drops the lines in between, and the marker lines never reach the output. See the Spring template's `pom.xml` and `ExampleController.java` for real use.
+- **Pick-one choices** — the **Java version** (`{ kind: 'choice', id, label, description, choices: [{ value, label }, ...], default }`): 25, 21 or 17, with 25 the default. The picked value reaches the template files as a placeholder named after the option — `java-version` becomes `{{javaVersion}}` (see `<java.version>` in the Spring template's `pom.xml`). A registry text such as `extraPrerequisite` can use it too (`JDK {{javaVersion}}+`), and is filled in when the README is written.
+
+Rules worth knowing:
 
 - Markers must be a whole line holding a comment in the file's own language (`//`, `#`, or `<!-- -->`). That's also why C#'s real `#if DEBUG` is never mistaken for one.
+- `#if` only works with on/off options. A choice is read as a `{{placeholder}}`, so `#if java-version` throws like any unknown name.
 - An unknown option name or an unbalanced marker **throws**, naming the file and line, so a typo fails in the tests instead of shipping.
-- Option ids are global — they become the CLI flags `--<id>` / `--no-<id>` and the marker names — so keep them unique (a test checks this).
+- Option ids are global — they become the CLI flags (`--<id>` / `--no-<id>`, or `--<id> <value>` for a choice) and the marker or placeholder names — so keep them unique (a test checks this). A choice's placeholder can't reuse a built-in variable name; generation throws if it would.
 - Options compose: two options can both put lines in the same `pom.xml`, which is why this is done with markers rather than overlay folders that replace whole files.
+- To add a choice, give the entry a `kind: 'choice'` option and use `{{camelCaseId}}` in the template files — nothing in `generate-project.ts`, the CLI or the browser form needs to change.
 
 ## CLI usage
 
@@ -105,11 +116,36 @@ Non-interactive (useful for scripts/CI):
 npm create my-app@latest -- customer-portal --frontend react --backend node
 ```
 
-Flags: `--frontend <react|angular>`, `--backend <node|dotnet|springboot>`, `--skip-install`, and a `--<option>` / `--no-<option>` pair for each option (currently `--lombok` / `--no-lombok`, Spring Boot only). Anything not passed as a flag is prompted for — options are only asked about when the chosen stack offers them. With no terminal (CI, pipes) an unspecified option quietly uses its default instead of waiting for input.
+Flags: `--frontend <react|angular>`, `--backend <node|dotnet|springboot>`, `--skip-install`, and one per option: a `--<option>` / `--no-<option>` pair for each on/off extra (currently `--lombok` / `--no-lombok`) and `--<option> <value>` for each pick-one choice (currently `--java-version <25|21|17>`). Both of those are Spring Boot only. Anything not passed as a flag is prompted for — options are only asked about when the chosen stack offers them. With no terminal (CI, pipes) an unspecified option quietly uses its default instead of waiting for input.
 
 ```bash
-npm create my-app@latest -- customer-portal --frontend react --backend springboot --lombok
+npm create my-app@latest -- customer-portal --frontend react --backend springboot --java-version 21 --lombok
 ```
+
+**The default Java version is 25, which needs a JDK 25 or newer to build.** On an older JDK, Maven stops with `release version 25 not supported`. So when `npm install` is run (not with `--skip-install`), the CLI checks the JDK on your `PATH` and prints a warning if it is older than the Java version you picked. Fix it by installing a newer JDK (the generated README says which), or generate again with a lower `--java-version`, or edit `<java.version>` in `apps/api/pom.xml` — Spring Boot 3.5 supports Java 17 up to 25.
+
+## Browser form (`--ui`)
+
+Prefer a form to terminal questions? This opens one in your browser:
+
+```bash
+npm create my-app@latest -- --ui      # or: npx create-my-app --ui
+```
+
+It starts a small server on your own computer (`127.0.0.1`, any free port) and opens the page. The form has the project name, a folder (it starts at the folder you ran the command from), the frontend and backend, any options the chosen stack offers (the Java version, Lombok), and an "Install dependencies" checkbox. **Generate** writes the project straight into that folder — there's no zip to download — and shows what the generator prints while it runs. When it's done the page shows where the project is and the commands to start it. **Stop the generator** (or Ctrl+C in the terminal) ends it. If no browser opens by itself (no desktop, an SSH session), add `--no-open` and open the printed link yourself.
+
+How it stays in step with the CLI:
+
+- The form is built from the registry, so a new frontend, backend or option shows up in it without anyone touching `packages/cli/ui/`.
+- Generate has no code path of its own. The server runs the CLI itself, with the flags that match the form (the page shows the exact command), so the form and the terminal can't drift apart.
+
+Keeping it safe — it can write files, so it isn't a web page you host:
+
+- It listens on `127.0.0.1` only, never on the network. It's meant for a developer's own machine; don't expose it.
+- The link holds a random one-time key that every request must carry, and a request with an unexpected `Host` header is refused. That keeps other websites open in your browser from driving it.
+- It serves a fixed list of five files, sends a strict Content-Security-Policy (no inline scripts), and creates one project at a time.
+
+`--ui` can't be combined with a project name or the other flags; the form is where you answer those. The page is plain HTML, CSS and JS in `packages/cli/ui/`, the server is in `packages/cli/src/ui/`.
 
 ## Generated project
 
@@ -145,9 +181,10 @@ The shell also has a footer showing the app name and version (`apps/web/src/comp
 npm install                       # from the repo root; installs the CLI's own deps
 npm run build -w packages/cli
 npm run dev -w packages/cli -- my-test-app --frontend react --backend node
+npm run dev -w packages/cli -- --ui   # try the browser form from source
 ```
 
-`npm run dev` runs the CLI directly from `src/` via `tsx`, so you don't need to rebuild between changes.
+`npm run dev` runs the CLI directly from `src/` via `tsx`, so you don't need to rebuild between changes. (The form page, `packages/cli/ui/`, is read from disk on every request, so a browser refresh shows your edits.)
 
 ## Testing
 
@@ -156,9 +193,11 @@ npm test -w packages/cli          # fast, offline: generation logic + placeholde
 npm run test:smoke -w packages/cli  # slow: really runs `npm install` + build for every combination
 ```
 
-`npm test` covers all six frontend/backend combinations, the Lombok on/off variants, and the `#if` marker processor, and asserts: the expected files exist, every *other* backend's distinctive files are absent, no `{{placeholder}}` or `#if` marker is left unrendered, and root `package.json` (workspaces, scripts, version) is correct for that combination. It's fast and hermetic on purpose — no network, no real installs — which is also why it's separate from `test:smoke`.
+`npm test` covers all six frontend/backend combinations, the Lombok on/off variants, every Java version choice (and the warning for a JDK that is too old, using a stand-in `java`), and the `#if` marker processor, and asserts: the expected files exist, every *other* backend's distinctive files are absent, no `{{placeholder}}` or `#if` marker is left unrendered, and root `package.json` (workspaces, scripts, version) is correct for that combination. It's fast and hermetic on purpose — no network, no real installs — which is also why it's separate from `test:smoke`.
 
-`test:smoke` generates every combination for real (including Spring Boot with Lombok), runs `npm install` and a production build for each, and runs `dotnet build` / `./mvnw package` for the .NET / Spring Boot combinations *if* that SDK (`dotnet` / `java`) is on `PATH` (skipped with a clear note otherwise, not a failure).
+It also covers the browser form (`--ui`): the server's safety rules (one-time key, `Host` check, only its fixed files, loopback only), request validation, one-project-at-a-time, streaming and shutdown, against a stand-in CLI. A few tests run the real CLI through the form's server, and `create-my-app --ui` itself, straight from the TypeScript source via `tsx` — so no build is needed, and the form is checked against the real generator rather than a copy of it.
+
+`test:smoke` generates every combination for real (including Spring Boot with Lombok), runs `npm install` and a production build for each, and runs `dotnet build` / `./mvnw package` for the .NET / Spring Boot combinations *if* that SDK (`dotnet` / `java`) is on `PATH` (skipped with a clear note otherwise, not a failure). Spring Boot is built for the newest Java version the JDK on `PATH` can handle — the default, 25, needs a JDK 25 — and for each older version too (Java side only), so a JDK 25 machine checks all three.
 
 ## Publishing the CLI to npm
 
@@ -197,7 +236,7 @@ Nothing in `core/generate-project.ts` changes.
 
 Same shape as above, in `templates/backend/<id>/template/` and `registry/backends.ts`'s `BackendId`/`backendRegistry`. If the framework needs an install step `npm install` won't cover (like `dotnet restore` or fetching Maven dependencies), give its registry entry a `postInstall` hook — see the `dotnet` or `springboot` entries for the pattern (checks the SDK is on `PATH` first, so a missing SDK degrades to a clear message rather than a crash).
 
-The `springboot` template is the most recent addition and a good reference for a backend that isn't npm-based: it uses the Maven Wrapper (`mvnw`/`mvnw.cmd`, committed to the template so no local Maven install is required — only a JDK) and YAML configuration (`application.yml`) rather than `.properties`, matching what most teams actually reach for in a new Spring Boot project. Each backend is free to use whatever config format is idiomatic for it — YAML for Spring, `.env` for Node, `appsettings.json` for .NET — there's no requirement that they match. If a backend needs optional extras (Spring's Lombok is the example), list them in the entry's `options` and wrap the lines that differ in `#if` markers — see [Options and `#if` markers](#options-and-if-markers).
+The `springboot` template is the most recent addition and a good reference for a backend that isn't npm-based: it uses the Maven Wrapper (`mvnw`/`mvnw.cmd`, committed to the template so no local Maven install is required — only a JDK) and YAML configuration (`application.yml`) rather than `.properties`, matching what most teams actually reach for in a new Spring Boot project. Each backend is free to use whatever config format is idiomatic for it — YAML for Spring, `.env` for Node, `appsettings.json` for .NET — there's no requirement that they match. If a backend needs optional extras (Spring's Lombok is the example), list them in the entry's `options` and wrap the lines that differ in `#if` markers; for a pick-one setting (Spring's Java version) use a `choice` option and a `{{placeholder}}` — see [Options and `#if` markers](#options-and-if-markers).
 
 ### Changing shared design tokens
 
@@ -214,6 +253,7 @@ There's no separate version number per template today — the whole repo (and th
 ## Known limitations
 
 - **The .NET template has never been compiled.** There was no .NET SDK in the environment where this was built. `dotnet build` is wired into `test:smoke` and runs wherever the SDK exists, so run `npm run test:smoke` on a machine that has it before relying on that template.
-- **Spring Boot has been built and run for real** — OpenJDK 23.0.2, Maven 3.9.16 via the wrapper, with and without Lombok: `./mvnw package`, then the jar was started and `/api/health`, `/api/example` (including the 400 validation error), unknown URL (404), wrong method (405), CORS, Swagger docs and an unexpected exception (500, logged with a stack trace) were all checked. Only the 3.5.x line is verified; the newer 4.x is available but untested here, so move to it deliberately, not by accident.
+- **Spring Boot has been built and run for real**, with and without Lombok, on JDK 17 (Zulu 17.0.14), JDK 21 (Temurin 21.0.4) and JDK 23 (OpenJDK 23.0.2, building for Java 21), Maven 3.9.16 via the wrapper: `./mvnw package`, then the jar was started and `/api/health` and `/api/example` answered. On JDK 23 the fuller set was checked too — the 400 validation error, unknown URL (404), wrong method (405), CORS, Swagger docs and an unexpected exception (500, logged with a stack trace). **Java 25, the default, has not been built here: no JDK 25 was available.** Spring Boot's documentation says 3.5.16 supports Java 17 up to 25, and the Lombok (1.18.46) and compiler plugin (3.14.1) versions it manages are recent enough, but run `npm run test:smoke` on a machine with a JDK 25 before relying on it. Only the 3.5.x line is verified; the newer 4.x is available but untested here, so move to it deliberately, not by accident.
+- **The browser form (`--ui`) is a local developer tool, not a hosted site.** It has no login, because it only ever listens on your own machine. Opening the browser by itself uses `open` (macOS), `xdg-open` (Linux) or `rundll32` (Windows); the tests check the first two with a stand-in command, and the Windows launcher has never been run. If it doesn't open for you, `--no-open` prints the link.
 - **`shell-quote` override.** The generated root `package.json` forces `shell-quote` to `^1.12.0` because `concurrently` 10.x pins a version with a critical advisory (GHSA-pqg4-j6r4-53mv), which otherwise makes `npm audit` fail on a brand-new project. Drop the override once `concurrently` ships a release that depends on `shell-quote` 1.11 or newer.
 - **NestJS backend intentionally doesn't use `@nestjs/cli`.** It pulls in `@angular-devkit/schematics` transitively, which (as of the versions current when this was built) hit a Node.js `ERR_REQUIRE_CYCLE_MODULE` crash on `nest build` in testing. Separately, `tsx`/esbuild-based dev runners don't reliably emit the `emitDecoratorMetadata` output Nest's constructor injection depends on — a service can end up `undefined` in a controller with no error until it's called. `npm run dev`/`build` use the real TypeScript compiler (`tsc --watch` + `node --watch`) instead. See `templates/backend/node/template/README.md`.

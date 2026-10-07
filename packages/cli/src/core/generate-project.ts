@@ -4,20 +4,31 @@ import path from 'node:path';
 import { copyDir } from './copy-dir.js';
 import { installRootDependencies } from './install.js';
 import { toDotnetNamespace, toJavaPackageName, toPackageName } from './naming.js';
-import { renderTree } from './render-tree.js';
+import { renderPlaceholders, renderTree } from './render-tree.js';
+import { resolveOptions } from './resolve-options.js';
 import { resolveTemplatesRoot } from './paths.js';
 import { validateProjectName } from './validate-project-name.js';
 import { backendRegistry } from '../registry/backends.js';
 import { frontendRegistry } from '../registry/frontends.js';
-import { allOptions } from '../registry/options.js';
-import type { BackendId, BackendTemplate, FrontendId, FrontendTemplate, TemplateVariables } from '../registry/types.js';
+import { allOptions, optionFlagKey } from '../registry/options.js';
+import type {
+  BackendId,
+  BackendTemplate,
+  FrontendId,
+  FrontendTemplate,
+  OptionValue,
+  TemplateVariables,
+} from '../registry/types.js';
 
 export interface GenerateProjectOptions {
   projectName: string;
   frontend: FrontendId;
   backend: BackendId;
-  /** Extras to turn on or off, by option id (e.g. `{ lombok: true }`). Anything not listed uses the option's default. */
-  options?: Record<string, boolean>;
+  /**
+   * Options to set, by option id: true/false for an on/off extra (`{ lombok: true }`), the picked
+   * value for a choice (`{ 'java-version': '21' }`). Anything not listed uses the option's default.
+   */
+  options?: Record<string, OptionValue>;
   /** Directory the project folder is created inside. Defaults to process.cwd(). */
   cwd?: string;
   /** Skip `npm install` / `dotnet restore` — used by tests and power users (--skip-install). */
@@ -30,7 +41,7 @@ export interface GenerateProjectResult {
   frontend: FrontendTemplate;
   backend: BackendTemplate;
   variables: TemplateVariables;
-  /** Ids of the options that ended up switched on. */
+  /** Ids of the on/off options that ended up switched on. (Choices, like the Java version, are in `variables`.) */
   options: string[];
   installed: boolean;
 }
@@ -42,8 +53,13 @@ const skipOption = { skip: (name: string) => COPY_SKIP_NAMES.has(name) };
 // isn't derived from anything more automatic yet.
 const APP_VERSION = '0.1.0';
 
-function buildVariables(projectName: string, frontend: FrontendTemplate, backend: BackendTemplate): TemplateVariables {
-  return {
+function buildVariables(
+  projectName: string,
+  frontend: FrontendTemplate,
+  backend: BackendTemplate,
+  optionValues: Record<string, OptionValue>,
+): TemplateVariables {
+  const variables: TemplateVariables = {
     projectName,
     packageName: toPackageName(projectName),
     appVersion: APP_VERSION,
@@ -59,31 +75,27 @@ function buildVariables(projectName: string, frontend: FrontendTemplate, backend
     backendDevCommand: backend.devCommand,
     frontendEnvLine: frontend.envDocLine,
     backendEnvLine: backend.envDocLine,
-    backendPrerequisiteLine: backend.extraPrerequisite ? `\n- ${backend.extraPrerequisite}` : '',
+    backendPrerequisiteLine: '', // filled in below, once the choices exist
     backendBuildNote: backend.extraBuildNote ?? '',
   };
-}
 
-/** Works out which options are on, and rejects any the chosen frontend/backend doesn't offer. */
-function resolveEnabledOptions(
-  frontend: FrontendTemplate,
-  backend: BackendTemplate,
-  requested: Record<string, boolean> = {},
-): Set<string> {
-  const available = [...(frontend.options ?? []), ...(backend.options ?? [])];
-  const availableIds = new Set(available.map((option) => option.id));
+  // Each choice option the stack offers becomes a placeholder named after it (java-version -> {{javaVersion}}).
+  for (const option of [...(frontend.options ?? []), ...(backend.options ?? [])]) {
+    if (option.kind !== 'choice') continue;
 
-  for (const id of Object.keys(requested)) {
-    if (!availableIds.has(id)) {
-      const offeredBy = allOptions().find((entry) => entry.option.id === id)?.owner.label;
-      throw new Error(
-        `Option "${id}" isn't available for ${frontend.label} + ${backend.label}.` +
-          (offeredBy ? ` It only applies to ${offeredBy}.` : ' There is no such option.'),
-      );
+    const name = optionFlagKey(option.id);
+    if (name in variables) {
+      throw new Error(`Option "${option.id}" would replace the built-in template variable "${name}". Give the option another id.`);
     }
+    variables[name] = String(optionValues[option.id]);
   }
 
-  return new Set(available.filter((option) => requested[option.id] ?? option.default).map((option) => option.id));
+  // Last, because the line itself can use one of those placeholders ("JDK {{javaVersion}}+").
+  if (backend.extraPrerequisite) {
+    variables.backendPrerequisiteLine = `\n- ${renderPlaceholders(backend.extraPrerequisite, variables)}`;
+  }
+
+  return variables;
 }
 
 async function writeRootPackageJson(
@@ -146,7 +158,7 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   if (!backend) {
     throw new Error(`Unknown backend "${options.backend}". Available: ${Object.keys(backendRegistry).join(', ')}`);
   }
-  const enabledOptions = resolveEnabledOptions(frontend, backend, options.options);
+  const resolvedOptions = resolveOptions(frontend, backend, options.options);
 
   const cwd = options.cwd ?? process.cwd();
   const projectDir = path.resolve(cwd, options.projectName);
@@ -159,7 +171,7 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   }
   await fs.mkdir(projectDir, { recursive: true });
 
-  const variables = buildVariables(options.projectName, frontend, backend);
+  const variables = buildVariables(options.projectName, frontend, backend, resolvedOptions.values);
   const sharedRoot = path.join(resolveTemplatesRoot(), 'shared');
 
   log(`Creating ${frontend.label} frontend in ${frontend.targetDir}...`);
@@ -188,8 +200,9 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
 
   log('Applying template variables...');
   await renderTree(projectDir, variables, {
-    enabled: enabledOptions,
-    known: new Set(allOptions().map((entry) => entry.option.id)),
+    enabled: resolvedOptions.enabled,
+    // Only on/off options can be used in `#if` markers; a choice is read as a {{placeholder}} instead.
+    known: new Set(allOptions().filter(({ option }) => option.kind === 'toggle').map(({ option }) => option.id)),
   });
 
   let installed = false;
@@ -204,5 +217,5 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
     }
   }
 
-  return { projectDir, frontend, backend, variables, options: [...enabledOptions], installed };
+  return { projectDir, frontend, backend, variables, options: [...resolvedOptions.enabled], installed };
 }
