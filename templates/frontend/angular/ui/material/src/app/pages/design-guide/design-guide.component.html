@@ -1,0 +1,273 @@
+<div class="page">
+  <div>
+    <h1>Design guide</h1>
+    <p class="page-subtitle">
+      A sample of the HHS-approved TEDS UX / UI style guide, built with this app's own colors, fonts and components.
+      <a [href]="figmaUrl" target="_blank" rel="noreferrer" class="link">Open the guide in Figma</a>.
+    </p>
+  </div>
+
+  <app-guide-section
+    sectionId="typography"
+    title="Typography"
+    description="Roboto for titles and Fira Sans for content, both loaded from the app itself."
+  >
+    <div class="two-columns">
+      @for (group of typeGroups; track group.title) {
+        <app-guide-demo [title]="group.title">
+          @for (style of group.styles; track style.token) {
+            <div class="type-row">
+              <p class="text-h1">{{ style.name }}</p>
+              <p [class]="'muted text-' + style.token">{{ style.font }}, {{ style.size }}, {{ style.weight }}</p>
+              <p class="type-row__class text-content-4 muted">
+                <code>text-{{ style.token }}</code>
+              </p>
+            </div>
+          }
+        </app-guide-demo>
+      }
+    </div>
+  </app-guide-section>
+
+  <app-guide-section
+    sectionId="colors"
+    title="Colors"
+    description="The HHS color system. Text and background colors must still meet WCAG 2.0 AA contrast: check each pair."
+  >
+    <div class="colors">
+      @for (group of colorGroups; track group.title) {
+        <div class="colors__group">
+          <h3>
+            {{ group.title }} <span class="text-content-3 muted">{{ group.note }}</span>
+          </h3>
+          <div class="swatches">
+            @for (swatch of group.swatches; track swatch.name) {
+              <div class="swatch glass">
+                <span class="swatch__tile">
+                  <span class="swatch__color" [style.background]="'var(' + swatch.token + ')'"></span>
+                </span>
+                <div>
+                  <p class="text-h2">{{ swatch.name }}</p>
+                  <p class="text-content-3 muted">{{ swatch.hex }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="colors__group">
+        <h3>Color system</h3>
+        @for (palette of colorSystem; track palette.title) {
+          <div class="palette glass">
+            <table>
+              <caption class="text-h2">
+                {{ palette.title }}
+                @if (palette.note) {
+                  <span class="text-content-3 muted">{{ palette.note }}</span>
+                }
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Color</th>
+                  <th scope="col">Hex</th>
+                  <th scope="col">Token</th>
+                  <th scope="col">Application</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (color of palette.colors; track color.token) {
+                  <tr>
+                    <td>
+                      <span
+                        class="palette__color"
+                        [style.background]="'var(--color-' + color.token + ')'"
+                        aria-hidden="true"
+                      ></span>
+                    </td>
+                    <td>{{ color.hex }}</td>
+                    <td>
+                      <code>{{ color.token }}</code>
+                    </td>
+                    <td>{{ color.use }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <div class="colors__group">
+        <h3>Gradients</h3>
+        <div class="gradients">
+          @for (gradient of gradients; track gradient[0] + gradient[1]) {
+            <div class="gradient glass">
+              <div
+                class="gradient__sample"
+                [style.background]="'linear-gradient(90deg, ' + gradient[0] + ', ' + gradient[1] + ')'"
+              ></div>
+              <p class="text-content-3 muted">{{ gradient[0] }} to {{ gradient[1] }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </app-guide-section>
+
+  <app-guide-section
+    sectionId="icons"
+    title="Icons"
+    description="Heroicons, from the @ng-icons/heroicons package. Register the ones you need in core/icons.ts, then show them with the ng-icon element."
+  >
+    <div class="icons">
+      @for (item of icons; track item.name) {
+        <div class="icons__tile glass">
+          <ng-icon [name]="item.icon" size="24" aria-hidden="true" />
+          <span class="text-content-3 muted">{{ item.name }}</span>
+        </div>
+      }
+    </div>
+  </app-guide-section>
+
+  <app-guide-section
+    sectionId="components"
+    title="Components"
+    description="Angular Material components, themed in src/styles.css, plus the few in src/app/shared: change them in one place."
+  >
+    <div class="demos">
+      <app-guide-demo title="Input Field">
+        <div class="field">
+          <label class="field__label" for="guide-first-name">First Name</label>
+          <mat-form-field appearance="fill" subscriptSizing="dynamic">
+            <input matInput id="guide-first-name" value="John" />
+          </mat-form-field>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Textarea">
+        <div class="field">
+          <label class="field__label" for="guide-other">Other</label>
+          <mat-form-field appearance="fill" subscriptSizing="dynamic">
+            <textarea matInput id="guide-other" rows="3" placeholder="-"></textarea>
+          </mat-form-field>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Search">
+        <app-search-field></app-search-field>
+      </app-guide-demo>
+      <app-guide-demo title="Select">
+        <div class="field">
+          <span class="field__label" id="guide-relationship-label">Relationship</span>
+          <mat-form-field appearance="fill" subscriptSizing="dynamic">
+            <mat-select aria-labelledby="guide-relationship-label" value="">
+              <mat-option value="">-</mat-option>
+              <mat-option value="parent">Parent</mat-option>
+              <mat-option value="guardian">Guardian</mat-option>
+              <mat-option value="other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Price Input">
+        <div class="field">
+          <label class="field__label" for="guide-rent">Rent amount</label>
+          <mat-form-field appearance="fill" subscriptSizing="dynamic">
+            <span matTextPrefix class="muted">$&nbsp;</span>
+            <input matInput id="guide-rent" value="900" inputmode="numeric" />
+          </mat-form-field>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Tag">
+        <mat-chip-set>
+          @for (text of tags; track $index) {
+            <mat-chip>{{ text }}</mat-chip>
+          }
+        </mat-chip-set>
+      </app-guide-demo>
+      <app-guide-demo title="Button" class="wide">
+        <div class="row">
+          <button matButton="filled" type="button">Primary Button</button>
+          <button matButton="tonal" type="button">Secondary Button</button>
+          <button matButton="outlined" type="button">Tertiary Button</button>
+          <button matButton="filled" type="button" disabled>Disabled Button</button>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Checkbox">
+        <div class="column">
+          <mat-checkbox checked>Active Checkbox</mat-checkbox>
+          <mat-checkbox>Inactive Checkbox</mat-checkbox>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Radiobutton">
+        <mat-radio-group aria-label="Radio example" value="active" class="column">
+          <mat-radio-button value="active">Active Radio</mat-radio-button>
+          <mat-radio-button value="inactive">Inactive Radio</mat-radio-button>
+        </mat-radio-group>
+      </app-guide-demo>
+      <app-guide-demo title="Toggle">
+        <mat-button-toggle-group
+          aria-label="Theme"
+          hideSingleSelectionIndicator
+          [value]="theme"
+          (change)="theme = $event.value"
+        >
+          <mat-button-toggle value="light" aria-label="Light">
+            <ng-icon name="heroSunSolid" size="20" aria-hidden="true" />
+          </mat-button-toggle>
+          <mat-button-toggle value="dark" aria-label="Dark">
+            <ng-icon name="heroMoonSolid" size="20" aria-hidden="true" />
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        <p class="text-content-4 muted">A sample only: this starter has no dark theme.</p>
+      </app-guide-demo>
+      <app-guide-demo title="Step" class="wide">
+        <div class="row">
+          <app-step [number]="1" label="Active Step Name" [active]="true" />
+          <app-step [number]="2" label="Inactive Step Name" />
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Menu Item">
+        <div class="row">
+          <button type="button" class="menu-pill">
+            <ng-icon name="heroSquares2x2Solid" size="20" aria-hidden="true" />
+            Inactive Item
+          </button>
+          <button type="button" class="menu-pill menu-pill--active" aria-current="page">
+            <ng-icon name="heroViewColumnsSolid" size="20" aria-hidden="true" />
+            Active Item
+            <ng-icon name="heroChevronDownSolid" size="20" aria-hidden="true" />
+          </button>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Breadcrumb">
+        <app-breadcrumb [items]="breadcrumbItems" />
+      </app-guide-demo>
+      <app-guide-demo title="Avatar">
+        <app-avatar name="Jane Doe" />
+      </app-guide-demo>
+      <app-guide-demo title="Tabs">
+        <mat-tab-group aria-label="Example tabs" animationDuration="0ms" [mat-stretch-tabs]="false">
+          <mat-tab label="Active Tab"><p class="tab-panel muted">You are on the "Active Tab" tab.</p></mat-tab>
+          <mat-tab label="Inactive Tab"><p class="tab-panel muted">You are on the "Inactive Tab" tab.</p></mat-tab>
+        </mat-tab-group>
+      </app-guide-demo>
+      <app-guide-demo title="Snackbar" class="wide">
+        <div class="column">
+          @if (snackbars.includes('success')) {
+            <app-snackbar status="success" [dismissible]="true" (closed)="dismiss('success')">
+              Image processing submitted successfully.
+            </app-snackbar>
+          }
+          @if (snackbars.includes('alert')) {
+            <app-snackbar status="alert" [dismissible]="true" (closed)="dismiss('alert')">
+              Image processing submitted unsuccessfully.
+            </app-snackbar>
+          }
+          @if (snackbars.length < 2) {
+            <button matButton="outlined" type="button" class="self-start" (click)="showSnackbarsAgain()">Show again</button>
+          }
+        </div>
+      </app-guide-demo>
+    </div>
+  </app-guide-section>
+</div>

@@ -63,6 +63,21 @@ describe('generateProject error handling', () => {
     expect(await fs.readdir(workDir)).toEqual([]);
   });
 
+  it('rejects a CSS framework that is not offered, without touching the filesystem', async () => {
+    await expect(
+      generateProject({
+        projectName: 'valid-name',
+        frontend: 'angular',
+        backend: 'node',
+        options: { 'css-framework': 'bootstrap' },
+        cwd: workDir,
+        skipInstall: true,
+      }),
+    ).rejects.toThrow(/"css-framework" must be one of: tailwind, material \(got "bootstrap"\)/);
+
+    expect(await fs.readdir(workDir)).toEqual([]);
+  });
+
   it('rejects an option that does not exist at all', async () => {
     await expect(
       generateProject({

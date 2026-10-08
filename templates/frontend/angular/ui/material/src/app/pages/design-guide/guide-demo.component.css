@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+.demo {
+  display: flex;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: 20px;
+}
+
+.demo__title {
+  margin: 0;
+}

@@ -1,0 +1,12 @@
+<div
+  [attr.role]="role"
+  [class]="'flex items-center gap-3 rounded-md border-l-4 bg-surface/80 p-4 shadow-raised ' + styles.border + ' ' + className"
+>
+  <ng-icon [name]="styles.name" size="32" [color]="styles.color" class="shrink-0" aria-hidden="true" />
+  <p class="min-w-0 flex-1 text-content-1 text-text [overflow-wrap:anywhere]"><ng-content></ng-content></p>
+  @if (dismissible) {
+    <button type="button" aria-label="Dismiss" (click)="closed.emit()" class="shrink-0 rounded-full text-text">
+      <ng-icon name="heroXMarkSolid" size="24" aria-hidden="true" />
+    </button>
+  }
+</div>

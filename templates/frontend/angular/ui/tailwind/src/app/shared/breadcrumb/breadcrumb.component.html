@@ -1,0 +1,16 @@
+<nav aria-label="Breadcrumb">
+  <ol class="flex flex-wrap items-center gap-2 text-content-3 text-muted">
+    @for (item of items; track item.label; let first = $first) {
+      <li class="flex items-center gap-2">
+        @if (!first) {
+          <ng-icon name="heroChevronRightSolid" size="12" aria-hidden="true" />
+        }
+        @if (item.path) {
+          <a [routerLink]="item.path" class="hover:text-primary-vivid hover:underline">{{ item.label }}</a>
+        } @else {
+          <span aria-current="page">{{ item.label }}</span>
+        }
+      </li>
+    }
+  </ol>
+</nav>

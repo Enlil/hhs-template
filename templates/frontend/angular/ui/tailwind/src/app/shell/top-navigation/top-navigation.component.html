@@ -1,0 +1,15 @@
+<nav aria-label="Main" class="glass rounded-md px-2 sm:px-4">
+  <div class="flex overflow-x-auto [scrollbar-width:none]">
+    @for (item of items; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive
+        #rla="routerLinkActive"
+        ariaCurrentWhenActive="page"
+        [class]="navItemClasses(rla.isActive)"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </div>
+</nav>

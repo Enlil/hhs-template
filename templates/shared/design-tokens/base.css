@@ -1,0 +1,67 @@
+/*
+ * What every look shares on top of the tokens: the guide's two fonts, loaded
+ * from the packages in node_modules (nothing is fetched from Google at run
+ * time), and the guide's type scale on plain HTML elements. It sits in a CSS
+ * layer called "base", so a CSS framework's own classes and components still
+ * win over it.
+ *
+ * Only the Latin alphabet is loaded. For other alphabets, add the matching
+ * files, e.g. `@fontsource/roboto/latin-ext-400.css`.
+ *
+ * Import this AFTER tokens.css in each app's global stylesheet.
+ */
+@import '@fontsource/roboto/latin-400.css';
+@import '@fontsource/roboto/latin-700.css';
+@import '@fontsource/fira-sans/latin-400.css';
+@import '@fontsource/fira-sans/latin-500.css';
+@import '@fontsource/fira-sans/latin-700.css';
+
+@layer base {
+  body {
+    min-height: 100vh;
+    margin: 0;
+    /* The soft blue page. The colour is what shows under it, and while it loads. */
+    background-color: var(--color-background);
+    background-image: var(--gradient-background);
+    background-attachment: fixed;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: var(--font-size-content-1);
+    font-weight: var(--font-weight-content-1);
+    line-height: var(--line-height-content-1);
+  }
+
+  h1 {
+    font-family: var(--font-title);
+    font-size: var(--font-size-h1);
+    font-weight: var(--font-weight-h1);
+    line-height: var(--line-height-h1);
+  }
+
+  h2 {
+    font-family: var(--font-title);
+    font-size: var(--font-size-h2);
+    font-weight: var(--font-weight-h2);
+    line-height: var(--line-height-h2);
+  }
+
+  h3 {
+    font-family: var(--font-body);
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-h3);
+    line-height: var(--line-height-h3);
+  }
+
+  h4 {
+    font-family: var(--font-body);
+    font-size: var(--font-size-h4);
+    font-weight: var(--font-weight-h4);
+    line-height: var(--line-height-h4);
+  }
+
+  /* Keyboard focus: a visible ring in the guide's link/focus blue. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary-vivid);
+    outline-offset: 2px;
+  }
+}

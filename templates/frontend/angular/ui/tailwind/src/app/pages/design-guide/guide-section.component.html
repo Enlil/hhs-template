@@ -1,0 +1,7 @@
+<section [attr.aria-labelledby]="sectionId + '-title'" class="flex flex-col gap-4">
+  <div>
+    <h2 [id]="sectionId + '-title'">{{ title }}</h2>
+    <p class="text-muted">{{ description }}</p>
+  </div>
+  <ng-content></ng-content>
+</section>

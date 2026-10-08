@@ -1,0 +1,12 @@
+<aside class="sidebar glass">
+  <nav aria-label="Sidebar" class="sidebar__nav">
+    @for (link of links; track link.path) {
+      <a class="menu-pill" [routerLink]="link.path" routerLinkActive="menu-pill--active" ariaCurrentWhenActive="page">
+        @if (link.icon) {
+          <ng-icon [name]="link.icon" size="20" aria-hidden="true" />
+        }
+        {{ link.label }}
+      </a>
+    }
+  </nav>
+</aside>

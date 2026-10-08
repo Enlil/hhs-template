@@ -1,0 +1,13 @@
+<div class="mx-auto flex min-h-screen w-full max-w-[90rem] flex-col gap-4 p-4 sm:p-6">
+  <app-header></app-header>
+  <app-top-navigation></app-top-navigation>
+  <div class="flex flex-1 items-start gap-4">
+    <app-sidebar></app-sidebar>
+    <main class="min-w-0 flex-1">
+      <app-page-container>
+        <router-outlet></router-outlet>
+      </app-page-container>
+    </main>
+  </div>
+  <app-footer></app-footer>
+</div>

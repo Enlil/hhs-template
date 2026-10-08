@@ -1,0 +1,235 @@
+<div class="flex flex-col gap-10">
+  <div>
+    <h1>Design guide</h1>
+    <p class="mt-1 text-muted">
+      A sample of the HHS-approved TEDS UX / UI style guide, built with this app's own colors, fonts and components.
+      <a [href]="figmaUrl" target="_blank" rel="noreferrer" class="text-primary-vivid underline hover:no-underline"
+        >Open the guide in Figma</a
+      >.
+    </p>
+  </div>
+
+  <app-guide-section
+    sectionId="typography"
+    title="Typography"
+    description="Roboto for titles and Fira Sans for content, both loaded from the app itself."
+  >
+    <div class="grid gap-4 md:grid-cols-2">
+      @for (group of typeGroups; track group.title) {
+        <app-guide-demo [title]="group.title">
+          @for (style of group.styles; track style.token) {
+            <div class="rounded-md bg-text/8 px-5 py-4">
+              <p class="font-title text-h1">{{ style.name }}</p>
+              <p [class]="'text-muted ' + typeClasses[style.token]">
+                {{ style.font }}, {{ style.size }}, {{ style.weight }}
+              </p>
+              <p class="mt-1 text-content-4 text-muted">
+                <code>{{ typeClasses[style.token] }}</code>
+              </p>
+            </div>
+          }
+        </app-guide-demo>
+      }
+    </div>
+  </app-guide-section>
+
+  <app-guide-section
+    sectionId="colors"
+    title="Colors"
+    description="The HHS color system. Text and background colors must still meet WCAG 2.0 AA contrast: check each pair."
+  >
+    <div class="flex flex-col gap-6">
+      @for (group of colorGroups; track group.title) {
+        <div class="flex flex-col gap-3">
+          <h3>
+            {{ group.title }} <span class="text-content-3 font-normal text-muted">{{ group.note }}</span>
+          </h3>
+          <div class="grid gap-3 sm:grid-cols-3">
+            @for (swatch of group.swatches; track swatch.name) {
+              <div class="glass flex items-center gap-4 rounded-md p-2">
+                <span class="flex size-20 shrink-0 items-center justify-center rounded-sm bg-surface p-2">
+                  <span class="size-full rounded-sm" [style.background]="'var(' + swatch.token + ')'"></span>
+                </span>
+                <div>
+                  <p class="font-title text-h2">{{ swatch.name }}</p>
+                  <p class="text-content-3 text-muted">{{ swatch.hex }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="flex flex-col gap-3">
+        <h3>Color system</h3>
+        @for (palette of colorSystem; track palette.title) {
+          <div class="glass overflow-x-auto rounded-md">
+            <table class="w-full text-left text-content-3">
+              <caption class="px-4 pt-4 pb-2 text-left font-title text-h2">
+                {{ palette.title }}
+                @if (palette.note) {
+                  <span class="ml-2 text-content-3 font-normal text-muted">{{ palette.note }}</span>
+                }
+              </caption>
+              <thead class="bg-base-lighter">
+                <tr>
+                  <th scope="col" class="px-4 py-2 font-medium">Color</th>
+                  <th scope="col" class="px-4 py-2 font-medium">Hex</th>
+                  <th scope="col" class="px-4 py-2 font-medium">Token</th>
+                  <th scope="col" class="px-4 py-2 font-medium">Application</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (color of palette.colors; track color.token) {
+                  <tr class="odd:bg-surface/40">
+                    <td class="px-4 py-2">
+                      <span
+                        class="block size-8 rounded-sm"
+                        [style.background]="'var(--color-' + color.token + ')'"
+                        aria-hidden="true"
+                      ></span>
+                    </td>
+                    <td class="px-4 py-2">{{ color.hex }}</td>
+                    <td class="px-4 py-2">
+                      <code>{{ color.token }}</code>
+                    </td>
+                    <td class="px-4 py-2">{{ color.use }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <h3>Gradients</h3>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          @for (gradient of gradients; track gradient[0] + gradient[1]) {
+            <div class="glass rounded-md p-3">
+              <div
+                class="h-12 rounded-sm"
+                [style.background]="'linear-gradient(90deg, ' + gradient[0] + ', ' + gradient[1] + ')'"
+              ></div>
+              <p class="mt-2 text-content-3 text-muted">{{ gradient[0] }} to {{ gradient[1] }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </app-guide-section>
+
+  <app-guide-section
+    sectionId="icons"
+    title="Icons"
+    description="Heroicons, from the @ng-icons/heroicons package. Register the ones you need in core/icons.ts, then show them with the ng-icon element."
+  >
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      @for (item of icons; track item.name) {
+        <div class="glass flex items-center gap-3 rounded-md px-4 py-3">
+          <ng-icon [name]="item.icon" size="24" class="shrink-0 text-text" aria-hidden="true" />
+          <span class="text-content-3 text-muted">{{ item.name }}</span>
+        </div>
+      }
+    </div>
+  </app-guide-section>
+
+  <app-guide-section
+    sectionId="components"
+    title="Components"
+    description="Every piece below is a component in src/app/shared: use them as they are, or change them in one place."
+  >
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <app-guide-demo title="Input Field">
+        <app-input label="First Name" value="John" />
+      </app-guide-demo>
+      <app-guide-demo title="Textarea">
+        <app-textarea label="Other" placeholder="-" />
+      </app-guide-demo>
+      <app-guide-demo title="Search">
+        <app-search-field className="w-full" />
+      </app-guide-demo>
+      <app-guide-demo title="Select">
+        <app-select label="Relationship" value="">
+          <option value="">-</option>
+          <option value="parent">Parent</option>
+          <option value="guardian">Guardian</option>
+          <option value="other">Other</option>
+        </app-select>
+      </app-guide-demo>
+      <app-guide-demo title="Price Input">
+        <app-input label="Rent amount" adornment="$" value="900" inputMode="numeric" />
+      </app-guide-demo>
+      <app-guide-demo title="Tag">
+        <div class="flex flex-wrap gap-1">
+          @for (text of tags; track $index) {
+            <app-tag>{{ text }}</app-tag>
+          }
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Button" class="md:col-span-2 xl:col-span-3">
+        <div class="flex flex-wrap gap-2">
+          <app-button>Primary Button</app-button>
+          <app-button variant="secondary">Secondary Button</app-button>
+          <app-button variant="tertiary">Tertiary Button</app-button>
+          <app-button [disabled]="true">Disabled Button</app-button>
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Checkbox">
+        <div class="flex flex-col gap-4">
+          <app-checkbox label="Active Checkbox" [checked]="true" />
+          <app-checkbox label="Inactive Checkbox" />
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Radiobutton">
+        <div class="flex flex-col gap-4">
+          <app-radio name="radio-example" value="active" label="Active Radio" [checked]="true" />
+          <app-radio name="radio-example" value="inactive" label="Inactive Radio" />
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Toggle">
+        <app-segmented-toggle label="Theme" [options]="themeOptions" [(value)]="theme" />
+        <p class="text-content-4 text-muted">A sample only: this starter has no dark theme.</p>
+      </app-guide-demo>
+      <app-guide-demo title="Step" class="md:col-span-2 xl:col-span-3">
+        <div class="flex flex-wrap gap-3">
+          <app-step [number]="1" label="Active Step Name" [active]="true" />
+          <app-step [number]="2" label="Inactive Step Name" />
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Menu Item">
+        <div class="flex flex-wrap gap-3">
+          <app-menu-item label="Inactive Item" icon="heroSquares2x2Solid" />
+          <app-menu-item label="Active Item" icon="heroViewColumnsSolid" [active]="true" [expandable]="true" />
+        </div>
+      </app-guide-demo>
+      <app-guide-demo title="Breadcrumb">
+        <app-breadcrumb [items]="breadcrumbItems" />
+      </app-guide-demo>
+      <app-guide-demo title="Avatar">
+        <app-avatar name="Jane Doe" />
+      </app-guide-demo>
+      <app-guide-demo title="Tabs">
+        <app-tabs label="Example tabs" [tabs]="tabs" [(value)]="tab" />
+        <p role="tabpanel" class="text-muted">You are on the "{{ tab }}" tab.</p>
+      </app-guide-demo>
+      <app-guide-demo title="Snackbar" class="md:col-span-2 xl:col-span-3">
+        <div class="flex flex-col gap-3">
+          @if (snackbars.includes('success')) {
+            <app-snackbar status="success" [dismissible]="true" (closed)="dismiss('success')">
+              Image processing submitted successfully.
+            </app-snackbar>
+          }
+          @if (snackbars.includes('alert')) {
+            <app-snackbar status="alert" [dismissible]="true" (closed)="dismiss('alert')">
+              Image processing submitted unsuccessfully.
+            </app-snackbar>
+          }
+          @if (snackbars.length < 2) {
+            <app-button variant="tertiary" className="self-start" (click)="showSnackbarsAgain()">Show again</app-button>
+          }
+        </div>
+      </app-guide-demo>
+    </div>
+  </app-guide-section>
+</div>

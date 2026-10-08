@@ -1,0 +1,7 @@
+.placeholder__content {
+  padding: var(--spacing-lg);
+}
+
+p {
+  margin: 0;
+}

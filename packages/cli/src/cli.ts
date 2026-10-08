@@ -8,12 +8,12 @@ import { generateProject } from './core/generate-project.js';
 import { printNextSteps } from './core/next-steps.js';
 import { validateProjectName } from './core/validate-project-name.js';
 import {
-  allOptions,
   backendChoices,
   backendRegistry,
   frontendChoices,
   frontendRegistry,
   optionFlagKey,
+  optionGroups,
 } from './registry/index.js';
 import type {
   BackendId,
@@ -114,9 +114,9 @@ async function askForOptions(
   const offeredIds = new Set(offered.map((option) => option.id));
 
   // A flag for an option this combination doesn't have is a mistake: say so instead of ignoring it.
-  for (const { option, owner } of allOptions()) {
+  for (const { option, owners } of optionGroups()) {
     if (flags[optionFlagKey(option.id)] !== undefined && !offeredIds.has(option.id)) {
-      throw new Error(`--${option.id} only works with ${owner.label}.`);
+      throw new Error(`--${option.id} only works with ${owners.map((owner) => owner.label).join(' or ')}.`);
     }
   }
 
@@ -150,7 +150,7 @@ function rejectAnswerFlags(args: string[], flags: CliOptions): void {
     ...(flags.frontend !== undefined ? ['--frontend'] : []),
     ...(flags.backend !== undefined ? ['--backend'] : []),
     ...(flags.skipInstall ? ['--skip-install'] : []),
-    ...allOptions()
+    ...optionGroups()
       .filter(({ option }) => flags[optionFlagKey(option.id)] !== undefined)
       .map(({ option }) => (option.kind === 'toggle' ? `--[no-]${option.id}` : `--${option.id}`)),
   ];
@@ -176,15 +176,16 @@ export async function run(argv: string[]): Promise<void> {
 
   // One --<id> / --no-<id> pair per on/off option in the registry, and one --<id> <value> per
   // choice. Defining --<id> first keeps the default "unset", so we know when to ask instead of assuming.
-  for (const { option, owner } of allOptions()) {
+  for (const { option, owners } of optionGroups()) {
+    const offeredBy = owners.map((owner) => owner.label).join(', ');
     if (option.kind === 'toggle') {
-      program.option(`--${option.id}`, `${owner.label}: include ${option.label} (${option.description})`);
-      program.option(`--no-${option.id}`, `${owner.label}: leave out ${option.label}`);
+      program.option(`--${option.id}`, `${offeredBy}: include ${option.label} (${option.description})`);
+      program.option(`--no-${option.id}`, `${offeredBy}: leave out ${option.label}`);
     } else {
       const values = option.choices.map((choice) => choice.value).join('|');
       program.option(
         `--${option.id} <value>`,
-        `${owner.label}: ${option.label}, ${option.description} (${values}; default ${option.default})`,
+        `${offeredBy}: ${option.label}, ${option.description} (${values}; default ${option.default})`,
       );
     }
   }

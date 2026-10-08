@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { copyDir } from './copy-dir.js';
 import { installRootDependencies } from './install.js';
+import { mergeJsonFile } from './merge-json-file.js';
 import { toDotnetNamespace, toJavaPackageName, toPackageName } from './naming.js';
 import { renderPlaceholders, renderTree } from './render-tree.js';
 import { resolveOptions } from './resolve-options.js';
@@ -10,13 +11,14 @@ import { resolveTemplatesRoot } from './paths.js';
 import { validateProjectName } from './validate-project-name.js';
 import { backendRegistry } from '../registry/backends.js';
 import { frontendRegistry } from '../registry/frontends.js';
-import { allOptions, optionFlagKey } from '../registry/options.js';
+import { optionFlagKey, optionGroups } from '../registry/options.js';
 import type {
   BackendId,
   BackendTemplate,
   FrontendId,
   FrontendTemplate,
   OptionValue,
+  TemplateLayer,
   TemplateVariables,
 } from '../registry/types.js';
 
@@ -98,6 +100,35 @@ function buildVariables(
   return variables;
 }
 
+/** The layer each of the template's layered options picked, e.g. the Material Design files for `css-framework=material`. */
+function pickedLayers(template: FrontendTemplate | BackendTemplate, values: Record<string, OptionValue>): TemplateLayer[] {
+  return Object.entries(template.layers ?? {}).map(([optionId, layerByChoice]) => {
+    const choice = String(values[optionId]);
+    const layer = layerByChoice[choice];
+    if (!layer) {
+      throw new Error(`${template.label} has no files for "${choice}" in its "${optionId}" option.`);
+    }
+    return layer;
+  });
+}
+
+/**
+ * Copies a layer over what the template already put in place: a file with the
+ * same path is replaced, except a .json file, which is merged into the
+ * template's (so a layer can add dependencies or change one setting without
+ * repeating the whole file).
+ */
+async function applyLayer(layer: TemplateLayer, targetDir: string): Promise<void> {
+  await copyDir(layer.dir, targetDir, {
+    ...skipOption,
+    handleFile: async (srcPath, destPath) => {
+      if (path.extname(srcPath) !== '.json' || !existsSync(destPath)) return false;
+      await mergeJsonFile(destPath, srcPath);
+      return true;
+    },
+  });
+}
+
 async function writeRootPackageJson(
   projectDir: string,
   variables: TemplateVariables,
@@ -159,6 +190,8 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
     throw new Error(`Unknown backend "${options.backend}". Available: ${Object.keys(backendRegistry).join(', ')}`);
   }
   const resolvedOptions = resolveOptions(frontend, backend, options.options);
+  const frontendLayers = pickedLayers(frontend, resolvedOptions.values);
+  const backendLayers = pickedLayers(backend, resolvedOptions.values);
 
   const cwd = options.cwd ?? process.cwd();
   const projectDir = path.resolve(cwd, options.projectName);
@@ -174,11 +207,16 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   const variables = buildVariables(options.projectName, frontend, backend, resolvedOptions.values);
   const sharedRoot = path.join(resolveTemplatesRoot(), 'shared');
 
+  const frontendDir = path.join(projectDir, frontend.targetDir);
+  const backendDir = path.join(projectDir, backend.targetDir);
+
   log(`Creating ${frontend.label} frontend in ${frontend.targetDir}...`);
-  await copyDir(frontend.templateDir, path.join(projectDir, frontend.targetDir), skipOption);
+  await copyDir(frontend.templateDir, frontendDir, skipOption);
+  for (const layer of frontendLayers) await applyLayer(layer, frontendDir);
 
   log(`Creating ${backend.label} backend in ${backend.targetDir}...`);
-  await copyDir(backend.templateDir, path.join(projectDir, backend.targetDir), skipOption);
+  await copyDir(backend.templateDir, backendDir, skipOption);
+  for (const layer of backendLayers) await applyLayer(layer, backendDir);
 
   log('Copying shared design tokens, assets, and API contract...');
   await copyDir(path.join(sharedRoot, 'design-tokens'), path.join(projectDir, 'shared/design-tokens'), skipOption);
@@ -189,10 +227,14 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   // imports inside its own src/, so its bundler resolves them as ordinary
   // local files instead of reaching outside its project root. shared/ above
   // remains the canonical, framework-neutral copy per the generated layout.
-  await copyDir(path.join(sharedRoot, 'design-tokens'), path.join(projectDir, frontend.targetDir, 'src/styles'), {
-    skip: (name) => COPY_SKIP_NAMES.has(name) || name === 'tokens.json',
+  // Which token files that is depends on the frontend's CSS framework: each
+  // layer lists the ones it reads. Without layers, everything but tokens.json.
+  const wantedTokenFiles = new Set(frontendLayers.flatMap((layer) => layer.tokenFiles));
+  const wantsTokenFile = (name: string): boolean => (wantedTokenFiles.size > 0 ? wantedTokenFiles.has(name) : name !== 'tokens.json');
+  await copyDir(path.join(sharedRoot, 'design-tokens'), path.join(frontendDir, 'src/styles'), {
+    skip: (name) => COPY_SKIP_NAMES.has(name) || !wantsTokenFile(name),
   });
-  await copyDir(path.join(sharedRoot, 'assets'), path.join(projectDir, frontend.targetDir, 'src/assets'), skipOption);
+  await copyDir(path.join(sharedRoot, 'assets'), path.join(frontendDir, 'src/assets'), skipOption);
 
   log('Generating project configuration...');
   await writeRootPackageJson(projectDir, variables, frontend, backend);
@@ -202,7 +244,7 @@ export async function generateProject(options: GenerateProjectOptions): Promise<
   await renderTree(projectDir, variables, {
     enabled: resolvedOptions.enabled,
     // Only on/off options can be used in `#if` markers; a choice is read as a {{placeholder}} instead.
-    known: new Set(allOptions().filter(({ option }) => option.kind === 'toggle').map(({ option }) => option.id)),
+    known: new Set(optionGroups().filter(({ option }) => option.kind === 'toggle').map(({ option }) => option.id)),
   });
 
   let installed = false;

@@ -1,0 +1,16 @@
+<div [class]="'flex flex-col gap-1 ' + className">
+  @if (label) {
+    <label [for]="textareaId" class="text-content-2 text-muted">{{ label }}</label>
+  }
+  <textarea
+    [id]="textareaId"
+    [name]="name"
+    [rows]="rows"
+    [placeholder]="placeholder"
+    [required]="required"
+    [disabled]="disabled"
+    [value]="value"
+    (input)="onInput($event)"
+    class="w-full resize-y rounded-xl bg-surface px-5 py-3.5 text-content-3 text-text placeholder:text-subtle disabled:opacity-50"
+  ></textarea>
+</div>

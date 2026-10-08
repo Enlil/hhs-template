@@ -38,8 +38,10 @@ export interface GenerationContext {
 interface OptionBase {
   /**
    * kebab-case. Becomes the CLI flag `--<id>` (plus `--no-<id>` for an on/off
-   * option) and, for a choice, the placeholder `{{camelCaseId}}` — so it must be
-   * unique across ALL templates.
+   * option) and, for a choice, the placeholder `{{camelCaseId}}`. The same id
+   * on two templates means the same option (one flag, one meaning), so they
+   * must define it identically — share one object, as the frontends do for
+   * `css-framework`.
    */
   id: string;
   /** Short name used in prompts and the browser form, e.g. "Lombok". */
@@ -78,6 +80,21 @@ export type TemplateOption = ToggleOption | ChoiceOption;
 /** What an option can be set to: true/false for an on/off option, the picked value for a choice. */
 export type OptionValue = boolean | string;
 
+/**
+ * A folder of files that one choice of an option adds to a template (e.g. the
+ * Material Design files for the "css-framework" choice). It is copied over the
+ * template's own files: a file with the same path replaces the template's,
+ * except a .json file, which is merged into it (objects are merged key by key,
+ * lists and values replaced) — that is how a layer adds its dependencies to
+ * `package.json`. So the template itself holds only what every choice shares.
+ */
+export interface TemplateLayer {
+  /** Absolute path of the folder, under the template's `ui/` folder. */
+  dir: string;
+  /** The files from `templates/shared/design-tokens` this layer uses; they are copied into the app's `src/styles`. */
+  tokenFiles: string[];
+}
+
 interface TemplateDefinitionBase {
   label: string;
   description: string;
@@ -93,8 +110,14 @@ interface TemplateDefinitionBase {
   workspaceMember: boolean;
   /** One-line markdown (with its own inline code spans) describing where this template's real runtime config lives, for the generated root README. */
   envDocLine: string;
-  /** Optional extras the user can switch on for this template. */
+  /** Optional extras and pick-one settings the user can choose for this template. */
   options?: TemplateOption[];
+  /**
+   * Files that a picked choice adds, by option id and then by choice value:
+   * `{ 'css-framework': { tailwind: { dir, tokenFiles }, material: { ... } } }`.
+   * Every choice of a listed option needs an entry. See TemplateLayer.
+   */
+  layers?: Record<string, Record<string, TemplateLayer>>;
 }
 
 export interface FrontendTemplate extends TemplateDefinitionBase {

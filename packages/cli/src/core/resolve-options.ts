@@ -1,4 +1,4 @@
-import { allOptions } from '../registry/options.js';
+import { optionGroups } from '../registry/options.js';
 import type { BackendTemplate, FrontendTemplate, OptionValue } from '../registry/types.js';
 
 export interface ResolvedOptions {
@@ -24,7 +24,10 @@ export function resolveOptions(
     const option = offered.find((candidate) => candidate.id === id);
 
     if (!option) {
-      const offeredBy = allOptions().find((entry) => entry.option.id === id)?.owner.label;
+      const offeredBy = optionGroups()
+        .find((group) => group.option.id === id)
+        ?.owners.map((owner) => owner.label)
+        .join(' or ');
       throw new Error(
         `Option "${id}" isn't available for ${frontend.label} + ${backend.label}.` +
           (offeredBy ? ` It only applies to ${offeredBy}.` : ' There is no such option.'),

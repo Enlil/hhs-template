@@ -1,0 +1,24 @@
+@if (open) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-text/40 p-4" (click)="close()">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      class="w-full max-w-md rounded-lg bg-surface p-6 shadow-raised"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <h2 id="modal-title">{{ modalTitle }}</h2>
+        <button
+          type="button"
+          (click)="close()"
+          aria-label="Close dialog"
+          class="rounded-full p-1 text-text hover:bg-primary-lighter"
+        >
+          <ng-icon name="heroXMarkSolid" size="24" aria-hidden="true" />
+        </button>
+      </div>
+      <ng-content></ng-content>
+    </div>
+  </div>
+}

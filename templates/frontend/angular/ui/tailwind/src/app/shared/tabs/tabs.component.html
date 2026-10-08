@@ -1,0 +1,14 @@
+<div role="tablist" [attr.aria-label]="label" (keydown)="onKeydown($event)" class="flex border-b border-surface">
+  @for (tab of tabs; track tab) {
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="tab === value"
+      [attr.tabindex]="tab === value ? 0 : -1"
+      (click)="valueChange.emit(tab)"
+      [class]="tabClasses(tab === value)"
+    >
+      {{ tab }}
+    </button>
+  }
+</div>

@@ -1,24 +1,106 @@
 /*
- * Framework-neutral design tokens, mirroring tokens.json as plain CSS
- * custom properties. This is temporary v1 scaffolding UI — replace the
- * values here (not the structure) when the real design system arrives.
- * Consumed identically by the React and Angular templates; see
- * tailwind-theme.css for how these become Tailwind utility classes.
+ * Framework-neutral design tokens: the HHS-approved design guide (the TEDS UX / UI
+ * style guide in Figma) written once as plain CSS custom properties. Consumed
+ * identically by the React and Angular templates, whichever CSS framework was
+ * chosen: each framework's own files map these values into its own theme.
+ * tokens.json holds the same values for code that reads JSON (the Material UI
+ * theme), and the CSS framework's own theme file (when it needs one) maps them
+ * into its theme. The tests keep these files in step, so change a value in all
+ * of them.
  */
 :root {
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-text: #0f172a;
-  --color-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-danger: #dc2626;
-  --color-success: #16a34a;
+  /*
+   * The guide's colour system. The names are its USWDS colour tokens, and the
+   * comments say where the guide uses each one.
+   */
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Base (greys) */
+  --color-base-darkest: #1b1b1b; /* text: alerts, body, buttons, input text */
+  --color-base-darker: #3d4551; /* tags, secondary text */
+  --color-base-dark: #565c65; /* backgrounds */
+  --color-base: #71767a; /* placeholders, backgrounds */
+  --color-base-light: #a9aeb1; /* borders, box shadows */
+  --color-base-lighter: #dfe1e2; /* backgrounds, table heads */
+  --color-base-lightest: #f0f0f0; /* backgrounds, borders */
+
+  /* Primary (blues) */
+  --color-primary-darker: #162e51; /* header, footer, primary navigation */
+  --color-primary-dark: #1a4480; /* backgrounds, borders */
+  --color-primary-vivid: #0050d8; /* button hover and focus, links */
+  --color-primary: #005ea2; /* backgrounds, borders, buttons */
+  --color-primary-light: #73b3e7; /* borders */
+  --color-primary-lighter: #d9e8f6; /* low-level alerts, secondary buttons */
+
+  /* Secondary (reds) */
+  --color-secondary-darker: #8b0a03;
+  --color-secondary-dark: #b50909;
+  --color-secondary-vivid: #e41d3d;
+  --color-secondary-light: #f2938c; /* high-level alerts */
+
+  /* Gold and yellow */
+  --color-gold-30v: #e5a000;
+  --color-gold-20v: #ffbe2e;
+  --color-yellow-30v: #ddaa01;
+  --color-yellow-20v: #face00; /* buttons */
+  --color-yellow-10v: #fee685; /* medium-level alerts */
+
+  /* Tertiary: sometimes used with the primary colours, in lesser amounts */
+  --color-magenta-70v: #5c1111;
+  --color-mint-cool-40v: #00a398;
+  --color-green-cool-40v: #6cc24a;
+
+  /* What the guide's "Colors" page calls them */
+  --color-text: var(--color-base-darkest); /* Content: High */
+  --color-muted: var(--color-base-darker); /* Content: Medium */
+  --color-subtle: var(--color-base); /* Content: Low */
+  --color-primary-foreground: #ffffff; /* text on --color-primary */
+  --color-success: var(--color-mint-cool-40v);
+  --color-alert: var(--color-secondary-vivid);
+  --color-warning: var(--color-gold-30v);
+
+  /* The page: a soft blue gradient (see --gradient-background), with white inputs and translucent white panels on it */
+  --color-background: var(--color-primary-lighter);
+  --color-surface: #ffffff;
+  --color-border: var(--color-base-lighter);
+
+  --gradient-primary: linear-gradient(107.56deg, #003087 0%, #005cb9 100%); /* the guide's "BG Linear" */
+  --gradient-background: linear-gradient(160deg, #e3edf8 0%, #bdd0e8 100%);
+
+  /* Fonts: Roboto for titles, Fira Sans for everything else. base.css loads them. */
+  --font-title: 'Roboto', Verdana, sans-serif;
+  --font-body: 'Fira Sans', Verdana, sans-serif;
+
+  /* The type scale: h1 and h2 in the title font, the rest in the body font */
+  --font-size-h1: 1.5rem;
+  --line-height-h1: 2rem;
+  --font-weight-h1: 700;
+  --font-size-h2: 1.25rem;
+  --line-height-h2: 1.75rem;
+  --font-weight-h2: 700;
+  --font-size-h3: 1.25rem;
+  --line-height-h3: 1.75rem;
+  --font-weight-h3: 500;
+  --font-size-h4: 1rem;
+  --line-height-h4: 1.5rem;
+  --font-weight-h4: 500;
+  --font-size-content-1: 1rem;
+  --line-height-content-1: 1.5rem;
+  --font-weight-content-1: 400;
+  --font-size-content-2: 0.875rem;
+  --line-height-content-2: 1.25rem;
+  --font-weight-content-2: 500;
+  --font-size-content-3: 0.875rem;
+  --line-height-content-3: 1.25rem;
+  --font-weight-content-3: 400;
+  --font-size-content-4: 0.75rem;
+  --line-height-content-4: 1rem;
+  --font-weight-content-4: 400;
+
+  --radius-sm: 4px; /* checkboxes, tags */
+  --radius-md: 16px; /* cards, snackbars */
+  --radius-lg: 24px; /* steps, dialogs */
+  --radius-xl: 32px; /* text fields */
+  --radius-pill: 9999px; /* buttons, menu items */
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -26,13 +108,7 @@
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.25rem;
-  --font-size-xl: 1.5rem;
-
-  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --shadow-raised: 0 0 12px 0 rgb(0 0 0 / 0.16); /* snackbars */
 
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;

@@ -1,0 +1,29 @@
+<div class="login">
+  <div class="login__center">
+    <mat-card appearance="outlined" class="login__card">
+      <mat-card-content>
+        <div class="login__brand">
+          <img src="assets/hhs-logo.png" alt="Texas Health and Human Services" class="login__logo" />
+          <h1>Sign in to {{ appName }}</h1>
+        </div>
+        <form class="login__form" (submit)="handleSubmit($event)">
+          <div class="field">
+            <label class="field__label" for="login-email">Email</label>
+            <mat-form-field appearance="fill" subscriptSizing="dynamic">
+              <input matInput id="login-email" type="email" name="email" placeholder="you@example.com" required />
+            </mat-form-field>
+          </div>
+          <div class="field">
+            <label class="field__label" for="login-password">Password</label>
+            <mat-form-field appearance="fill" subscriptSizing="dynamic">
+              <input matInput id="login-password" type="password" name="password" placeholder="••••••••" required />
+            </mat-form-field>
+          </div>
+          <button matButton="filled" type="submit" class="login__submit">Sign In</button>
+          <button matButton type="button">Forgot password?</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <app-footer></app-footer>
+</div>

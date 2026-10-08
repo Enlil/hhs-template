@@ -74,13 +74,17 @@ async function main(): Promise<void> {
   const springOptions = (extra: Record<string, OptionValue> = {}): Record<string, OptionValue> =>
     newestJava === undefined ? extra : { 'java-version': String(newestJava), ...extra };
 
+  // The CSS framework only changes the frontend, so Material Design is tried with one backend per frontend;
+  // every other combination uses the default (Tailwind).
   const combinations: Combo[] = [
     { frontend: 'react', backend: 'node' },
+    { frontend: 'react', backend: 'node', options: { 'css-framework': 'material' } },
     { frontend: 'react', backend: 'dotnet' },
     { frontend: 'react', backend: 'springboot', options: springOptions() },
     // Lombok only compiles if its annotation processor really runs, so this doubles as a check on that setup.
     { frontend: 'react', backend: 'springboot', options: springOptions({ lombok: true }) },
     { frontend: 'angular', backend: 'node' },
+    { frontend: 'angular', backend: 'node', options: { 'css-framework': 'material' } },
     { frontend: 'angular', backend: 'dotnet' },
     { frontend: 'angular', backend: 'springboot', options: springOptions() },
     // Every other Java version this JDK can build for: only the Java side is checked.

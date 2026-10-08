@@ -1,0 +1,15 @@
+<nav class="top-nav glass" aria-label="Main">
+  <div class="top-nav__inner">
+    @for (item of items; track item.path) {
+      <a
+        matButton
+        class="top-nav__link"
+        [routerLink]="item.path"
+        routerLinkActive="top-nav__link--active"
+        ariaCurrentWhenActive="page"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </div>
+</nav>

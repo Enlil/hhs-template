@@ -1,9 +1,0 @@
-<nav class="border-b border-border bg-surface">
-  <div class="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 sm:px-6">
-    @for (item of items; track item.path) {
-      <a [routerLink]="item.path" routerLinkActive #rla="routerLinkActive" [class]="navItemClasses(rla.isActive)">
-        {{ item.label }}
-      </a>
-    }
-  </div>
-</nav>

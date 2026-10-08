@@ -6,14 +6,28 @@ import { generateProject } from '../src/core/generate-project.js';
 import type { BackendId, FrontendId } from '../src/registry/types.js';
 import { listFilesRecursive } from './helpers.js';
 
-const COMBINATIONS: Array<{ frontend: FrontendId; backend: BackendId }> = [
-  { frontend: 'react', backend: 'node' },
-  { frontend: 'react', backend: 'dotnet' },
-  { frontend: 'react', backend: 'springboot' },
-  { frontend: 'angular', backend: 'node' },
-  { frontend: 'angular', backend: 'dotnet' },
-  { frontend: 'angular', backend: 'springboot' },
-];
+const FRONTENDS: FrontendId[] = ['react', 'angular'];
+const BACKENDS: BackendId[] = ['node', 'dotnet', 'springboot'];
+const CSS_FRAMEWORKS = ['tailwind', 'material'] as const;
+type CssFramework = (typeof CSS_FRAMEWORKS)[number];
+
+// Every frontend x backend x CSS framework: 12 combinations.
+const COMBINATIONS: Array<{ frontend: FrontendId; backend: BackendId; cssFramework: CssFramework }> = FRONTENDS.flatMap(
+  (frontend) =>
+    BACKENDS.flatMap((backend) => CSS_FRAMEWORKS.map((cssFramework) => ({ frontend, backend, cssFramework }))),
+);
+
+// The packages that belong to each CSS framework, per frontend: the one picked is installed, the other isn't.
+const FRAMEWORK_PACKAGES: Record<FrontendId, Record<CssFramework, string[]>> = {
+  react: {
+    tailwind: ['tailwindcss', '@tailwindcss/vite'],
+    material: ['@mui/material', '@emotion/react', '@emotion/styled'],
+  },
+  angular: {
+    tailwind: ['tailwindcss', '@tailwindcss/postcss', 'postcss'],
+    material: ['@angular/material', '@angular/cdk'],
+  },
+};
 
 // Each backend's distinctive marker file(s) — used both to assert the chosen
 // backend's files are present, and that every *other* backend's files are absent.
@@ -33,14 +47,15 @@ afterEach(async () => {
   await fs.rm(workDir, { recursive: true, force: true });
 });
 
-describe.each(COMBINATIONS)('generateProject($frontend + $backend)', ({ frontend, backend }) => {
+describe.each(COMBINATIONS)('generateProject($frontend + $backend, $cssFramework)', ({ frontend, backend, cssFramework }) => {
   it('produces the expected structure, with the right templates and no leftover placeholders', async () => {
-    const projectName = `test-${frontend}-${backend}`;
+    const projectName = `test-${frontend}-${backend}-${cssFramework}`;
 
     const result = await generateProject({
       projectName,
       frontend,
       backend,
+      options: { 'css-framework': cssFramework },
       cwd: workDir,
       skipInstall: true,
     });
@@ -57,6 +72,7 @@ describe.each(COMBINATIONS)('generateProject($frontend + $backend)', ({ frontend
       'shared/design-tokens/tokens.css',
       'shared/design-tokens/tokens.json',
       'shared/design-tokens/tailwind-theme.css',
+      'shared/design-tokens/base.css',
       'shared/assets/logo.svg',
       'shared/assets/hhs-logo.png',
       'shared/assets/hhs-seal.png',
@@ -77,6 +93,57 @@ describe.each(COMBINATIONS)('generateProject($frontend + $backend)', ({ frontend
       expect(files).toContain('apps/web/src/main.ts');
       expect(files).toContain('apps/web/src/health.json');
       expect(files.some((f) => f === 'apps/web/vite.config.ts')).toBe(false);
+    }
+
+    // The CSS framework picked: its packages and files are in, the other one's are not.
+    expect(result.variables.cssFramework).toBe(cssFramework);
+    const webPackageJson = JSON.parse(await fs.readFile(path.join(result.projectDir, 'apps/web/package.json'), 'utf8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const webPackages = Object.keys({ ...webPackageJson.dependencies, ...webPackageJson.devDependencies });
+    const otherFramework: CssFramework = cssFramework === 'tailwind' ? 'material' : 'tailwind';
+    for (const name of FRAMEWORK_PACKAGES[frontend][cssFramework]) {
+      expect(webPackages, `expected ${name} for ${cssFramework}`).toContain(name);
+    }
+    for (const name of FRAMEWORK_PACKAGES[frontend][otherFramework]) {
+      expect(webPackages, `did not expect ${name} (belongs to ${otherFramework})`).not.toContain(name);
+    }
+    // The layer's package.json was merged into the template's, not swapped for it.
+    expect(webPackages).toContain(frontend === 'react' ? 'react-router-dom' : '@angular/router');
+
+    // Every look gets the tokens and the guide's fonts and type scale (base.css); the rest depends on the framework.
+    expect(files).toContain('apps/web/src/styles/tokens.css');
+    expect(files).toContain('apps/web/src/styles/base.css');
+    if (cssFramework === 'tailwind') {
+      expect(files).toContain('apps/web/src/styles/tailwind-theme.css');
+      expect(files).not.toContain('apps/web/src/styles/tokens.json');
+    } else {
+      expect(files).not.toContain('apps/web/src/styles/tailwind-theme.css');
+    }
+
+    // The sample design guide page is in every look, and linked from the navigation.
+    expect(files).toContain(
+      frontend === 'react' ? 'apps/web/src/pages/DesignGuidePage.tsx' : 'apps/web/src/app/pages/design-guide/design-guide.component.ts',
+    );
+    const navigation = await fs.readFile(
+      path.join(result.projectDir, frontend === 'react' ? 'apps/web/src/lib/navigation.ts' : 'apps/web/src/app/core/navigation.ts'),
+      'utf8',
+    );
+    expect(navigation).toContain('/design-guide');
+    if (frontend === 'react') {
+      // Only the Material look builds its theme from the token values.
+      expect(files.includes('apps/web/src/theme.ts')).toBe(cssFramework === 'material');
+      expect(files.includes('apps/web/src/styles/tokens.json')).toBe(cssFramework === 'material');
+    } else {
+      expect(files.includes('apps/web/.postcssrc.json')).toBe(cssFramework === 'tailwind');
+    }
+
+    // Nothing of the other CSS framework leaked into the app's own files.
+    const leak = cssFramework === 'tailwind' ? /@mui\/|@emotion\/|@angular\/material|@angular\/cdk/ : /tailwind/i;
+    for (const relPath of files.filter((file) => file.startsWith('apps/web/') && /\.(ts|tsx|css|json|html|md)$/.test(file))) {
+      const text = await fs.readFile(path.join(result.projectDir, relPath), 'utf8');
+      expect(text, `${relPath} should not mention the other CSS framework`).not.toMatch(leak);
     }
 
     // Correct backend selected; every *other* backend's distinctive files are absent.

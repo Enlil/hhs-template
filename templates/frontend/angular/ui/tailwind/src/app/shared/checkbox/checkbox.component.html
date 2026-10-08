@@ -1,0 +1,16 @@
+<label [class]="'inline-flex items-center gap-4 text-content-3 text-text ' + className">
+  <input
+    type="checkbox"
+    class="peer sr-only"
+    [name]="name"
+    [checked]="checked"
+    [disabled]="disabled"
+    (change)="onChange($event)"
+  />
+  <span
+    class="flex size-6 shrink-0 items-center justify-center rounded-sm border border-base-light bg-surface text-transparent peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-vivid peer-disabled:opacity-50"
+  >
+    <ng-icon name="heroCheckSolid" size="20" aria-hidden="true" />
+  </span>
+  {{ label }}
+</label>

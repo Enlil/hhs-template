@@ -1,31 +1,92 @@
 /*
  * Maps tokens.css's plain CSS variables into Tailwind v4's theme, so
- * utilities like `bg-primary`, `text-muted`, and `rounded-md` read from the
- * same shared source instead of Tailwind's own defaults. `@theme inline`
- * keeps these as live `var(--...)` references (resolved from tokens.css's
- * `:root` block at runtime) rather than copying values in at build time —
- * see https://tailwindcss.com/docs/theme#referencing-other-variables.
+ * utilities like `bg-primary`, `text-muted`, `rounded-md` and `text-h1` read
+ * from the same shared source instead of Tailwind's own defaults. `@theme
+ * inline` keeps these as live `var(--...)` references (resolved from
+ * tokens.css's `:root` block at runtime) rather than copying values in at
+ * build time — see https://tailwindcss.com/docs/theme#referencing-other-variables.
  *
  * Import this AFTER tailwindcss and tokens.css in each app's global stylesheet.
  */
 @theme inline {
+  /* Colours: the guide's palette, then the roles built from it */
+  --color-base-darkest: var(--color-base-darkest);
+  --color-base-darker: var(--color-base-darker);
+  --color-base-dark: var(--color-base-dark);
+  --color-base: var(--color-base);
+  --color-base-light: var(--color-base-light);
+  --color-base-lighter: var(--color-base-lighter);
+  --color-base-lightest: var(--color-base-lightest);
+
+  --color-primary-darker: var(--color-primary-darker);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-vivid: var(--color-primary-vivid);
   --color-primary: var(--color-primary);
-  --color-primary-foreground: var(--color-primary-foreground);
-  --color-background: var(--color-background);
-  --color-surface: var(--color-surface);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-lighter: var(--color-primary-lighter);
+
+  --color-secondary-darker: var(--color-secondary-darker);
+  --color-secondary-dark: var(--color-secondary-dark);
+  --color-secondary-vivid: var(--color-secondary-vivid);
+  --color-secondary-light: var(--color-secondary-light);
+
+  --color-gold-30v: var(--color-gold-30v);
+  --color-gold-20v: var(--color-gold-20v);
+  --color-yellow-30v: var(--color-yellow-30v);
+  --color-yellow-20v: var(--color-yellow-20v);
+  --color-yellow-10v: var(--color-yellow-10v);
+  --color-magenta-70v: var(--color-magenta-70v);
+  --color-mint-cool-40v: var(--color-mint-cool-40v);
+  --color-green-cool-40v: var(--color-green-cool-40v);
+
   --color-text: var(--color-text);
   --color-muted: var(--color-muted);
-  --color-border: var(--color-border);
-  --color-danger: var(--color-danger);
+  --color-subtle: var(--color-subtle);
+  --color-primary-foreground: var(--color-primary-foreground);
   --color-success: var(--color-success);
+  --color-alert: var(--color-alert);
+  --color-warning: var(--color-warning);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-border: var(--color-border);
+
+  /* Fonts: `font-title` (Roboto) and `font-sans` (Fira Sans, the default) */
+  --font-title: var(--font-title);
+  --font-sans: var(--font-body);
+
+  /* The type scale: `text-h1` ... `text-content-4` set the size, line height and weight together */
+  --text-h1: var(--font-size-h1);
+  --text-h1--line-height: var(--line-height-h1);
+  --text-h1--font-weight: var(--font-weight-h1);
+  --text-h2: var(--font-size-h2);
+  --text-h2--line-height: var(--line-height-h2);
+  --text-h2--font-weight: var(--font-weight-h2);
+  --text-h3: var(--font-size-h3);
+  --text-h3--line-height: var(--line-height-h3);
+  --text-h3--font-weight: var(--font-weight-h3);
+  --text-h4: var(--font-size-h4);
+  --text-h4--line-height: var(--line-height-h4);
+  --text-h4--font-weight: var(--font-weight-h4);
+  --text-content-1: var(--font-size-content-1);
+  --text-content-1--line-height: var(--line-height-content-1);
+  --text-content-1--font-weight: var(--font-weight-content-1);
+  --text-content-2: var(--font-size-content-2);
+  --text-content-2--line-height: var(--line-height-content-2);
+  --text-content-2--font-weight: var(--font-weight-content-2);
+  --text-content-3: var(--font-size-content-3);
+  --text-content-3--line-height: var(--line-height-content-3);
+  --text-content-3--font-weight: var(--font-weight-content-3);
+  --text-content-4: var(--font-size-content-4);
+  --text-content-4--line-height: var(--line-height-content-4);
+  --text-content-4--font-weight: var(--font-weight-content-4);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
 
-  --font-sans: var(--font-sans);
-
-  --shadow-sm: var(--shadow-sm);
+  --shadow-raised: var(--shadow-raised);
 
   /*
    * Breakpoints are deliberately NOT mapped here. Tailwind bakes theme
@@ -37,4 +98,15 @@
    * exactly, so Tailwind's responsive variants (sm:, md:, lg:, xl:) already
    * agree with them without an explicit mapping.
    */
+}
+
+/*
+ * A translucent white panel with a soft edge, for cards, the header and the
+ * sidebar: the guide's app screens show these on the blue page. Use it as the
+ * class `glass`.
+ */
+@utility glass {
+  background-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(12px);
 }

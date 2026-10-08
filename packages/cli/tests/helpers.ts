@@ -1,5 +1,11 @@
 import { promises as fs } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Runs the real CLI straight from its TypeScript source (through tsx), so tests need no build.
+export const TSX_CLI = createRequire(import.meta.url).resolve('tsx/cli');
+export const CLI_ENTRY = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 
 /** Returns every file under `dir`, as POSIX-style paths relative to `dir`, sorted. */
 export async function listFilesRecursive(dir: string): Promise<string[]> {

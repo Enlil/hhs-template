@@ -1,0 +1,20 @@
+.sidebar {
+  display: none;
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 640px) {
+  .sidebar {
+    display: block;
+  }
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}

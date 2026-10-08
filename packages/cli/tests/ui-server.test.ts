@@ -2,7 +2,6 @@ import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { existsSync, promises as fs, readFileSync } from 'node:fs';
 import http from 'node:http';
-import { createRequire } from 'node:module';
 import net from 'node:net';
 import { networkInterfaces, tmpdir } from 'node:os';
 import path from 'node:path';
@@ -11,12 +10,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { backendChoices, frontendChoices } from '../src/registry/index.js';
 import { startUiServer } from '../src/ui/server.js';
 import type { RunningUiServer } from '../src/ui/server.js';
-import { waitFor } from './helpers.js';
+import { CLI_ENTRY, TSX_CLI, waitFor } from './helpers.js';
 
 const FAKE_CLI = fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url));
-const CLI_ENTRY = fileURLToPath(new URL('../src/index.ts', import.meta.url));
-// Runs the real CLI straight from its TypeScript source, so these tests don't need a build.
-const TSX_CLI = createRequire(import.meta.url).resolve('tsx/cli');
 const REAL_CLI = { command: process.execPath, args: [TSX_CLI, CLI_ENTRY] };
 
 interface UiEvent {
@@ -216,7 +212,7 @@ describe('local UI server', () => {
       const data = (await (await request('/api/registry')).json()) as {
         version: string;
         defaultDirectory: string;
-        frontends: Array<{ id: string; options: unknown[] }>;
+        frontends: Array<{ id: string; options: Array<Record<string, unknown>> }>;
         backends: Array<{ id: string; prerequisite?: string; options: Array<Record<string, unknown>> }>;
       };
 
@@ -224,6 +220,24 @@ describe('local UI server', () => {
       expect(data.defaultDirectory).toBe(workDir);
       expect(data.frontends.map((entry) => entry.id)).toEqual(frontendChoices.map((entry) => entry.id));
       expect(data.backends.map((entry) => entry.id)).toEqual(backendChoices.map((entry) => entry.id));
+
+      // Both frontends offer the same CSS framework choice.
+      for (const frontend of data.frontends) {
+        expect(frontend.options, frontend.id).toEqual([
+          {
+            id: 'css-framework',
+            key: 'cssFramework',
+            kind: 'choice',
+            label: 'CSS framework',
+            description: expect.any(String),
+            default: 'tailwind',
+            choices: [
+              { value: 'tailwind', label: 'Tailwind CSS' },
+              { value: 'material', label: 'Material Design' },
+            ],
+          },
+        ]);
+      }
 
       const springboot = data.backends.find((entry) => entry.id === 'springboot');
       expect(springboot?.options).toEqual([
@@ -271,6 +285,7 @@ describe('local UI server', () => {
       ['a Java version that is not offered', { backend: 'springboot', options: { 'java-version': '99' } }, 'options', /must be one of: 25, 21, 17/],
       ['a Java version that is a number', { backend: 'springboot', options: { 'java-version': 21 } }, 'options', /true\/false or text/],
       ['a Java version for a backend without Java', { options: { 'java-version': '21' } }, 'options', /java-version.*Spring Boot/],
+      ['a CSS framework that is not offered', { options: { 'css-framework': 'bootstrap' } }, 'options', /must be one of: tailwind, material/],
       ['options that are not an object', { options: ['lombok'] }, 'options', /true\/false or text/],
       ['install that is not true/false', { install: 'no' }, 'install', /true or false/],
       ['no folder', { directory: '' }, 'directory', /Choose a folder/],
@@ -377,15 +392,28 @@ describe('local UI server', () => {
 
       expect(events[0]).toEqual({
         type: 'start',
-        command: 'npx create-my-app demo-app --frontend react --backend springboot --java-version 21 --lombok --skip-install',
+        command:
+          'npx create-my-app demo-app --frontend react --backend springboot --css-framework tailwind --java-version 21 --lombok --skip-install',
       });
 
       const log = logText(events);
       // The temp folder may be reached through a symlink (macOS), so compare real paths.
       expect(log).toContain(`cwd=${await fs.realpath(workDir)}`);
-      // A choice goes over as two arguments (flag, then value), not one.
+      // A choice goes over as two arguments (flag, then value), not one; the frontend's options come before the backend's.
       expect(log).toContain(
-        `args=${JSON.stringify(['demo-app', '--frontend', 'react', '--backend', 'springboot', '--java-version', '21', '--lombok', '--skip-install'])}`,
+        `args=${JSON.stringify([
+          'demo-app',
+          '--frontend',
+          'react',
+          '--backend',
+          'springboot',
+          '--css-framework',
+          'tailwind',
+          '--java-version',
+          '21',
+          '--lombok',
+          '--skip-install',
+        ])}`,
       );
 
       const done = events.at(-1);
@@ -400,25 +428,31 @@ describe('local UI server', () => {
       {
         name: 'react + node with install on',
         body: { install: true },
-        command: 'npx create-my-app demo-app --frontend react --backend node',
+        command: 'npx create-my-app demo-app --frontend react --backend node --css-framework tailwind',
         steps: ['npm run dev'],
+      },
+      {
+        name: 'Material Design picked for Angular',
+        body: { frontend: 'angular', options: { 'css-framework': 'material' }, install: false },
+        command: 'npx create-my-app demo-app --frontend angular --backend node --css-framework material --skip-install',
+        steps: ['npm install', 'npm run dev'],
       },
       {
         name: 'angular + spring boot with Lombok left off',
         body: { frontend: 'angular', backend: 'springboot', options: {}, install: true },
-        command: 'npx create-my-app demo-app --frontend angular --backend springboot --java-version 25 --no-lombok',
+        command: 'npx create-my-app demo-app --frontend angular --backend springboot --css-framework tailwind --java-version 25 --no-lombok',
         steps: ['npm run dev'],
       },
       {
         name: 'a Lombok choice sent as off',
         body: { backend: 'springboot', options: { lombok: false }, install: false },
-        command: 'npx create-my-app demo-app --frontend react --backend springboot --java-version 25 --no-lombok --skip-install',
+        command: 'npx create-my-app demo-app --frontend react --backend springboot --css-framework tailwind --java-version 25 --no-lombok --skip-install',
         steps: ['npm install', 'npm run dev'],
       },
       {
         name: 'Java 17 picked',
         body: { backend: 'springboot', options: { 'java-version': '17' }, install: false },
-        command: 'npx create-my-app demo-app --frontend react --backend springboot --java-version 17 --no-lombok --skip-install',
+        command: 'npx create-my-app demo-app --frontend react --backend springboot --css-framework tailwind --java-version 17 --no-lombok --skip-install',
         steps: ['npm install', 'npm run dev'],
       },
     ])('passes the right flags for $name', async ({ body, command, steps }) => {
@@ -542,6 +576,22 @@ describe('local UI server with the real CLI', () => {
     await expect(fs.stat(path.join(project, 'node_modules'))).rejects.toThrow();
   });
 
+  it('writes a React project with the Material Design look, with Material UI added to its dependencies', async () => {
+    const events = await readEvents(
+      await postJson('/api/generate', validBody({ projectName: 'real-mui', options: { 'css-framework': 'material' } })),
+    );
+
+    expect(events.at(-1)?.type, JSON.stringify(events.slice(-3))).toBe('done');
+    const web = path.join(workDir, 'real-mui', 'apps/web');
+    const packageJson = JSON.parse(await fs.readFile(path.join(web, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(Object.keys(packageJson.dependencies)).toEqual(
+      expect.arrayContaining(['@mui/material', '@emotion/react', 'react', 'react-router-dom']),
+    );
+    await expect(fs.stat(path.join(web, 'src/theme.ts'))).resolves.toBeDefined();
+  });
+
   it('writes an Angular + Node.js project with no extras', async () => {
     const events = await readEvents(
       await postJson('/api/generate', validBody({ projectName: 'real-ng', frontend: 'angular', backend: 'node' })),
@@ -550,6 +600,8 @@ describe('local UI server with the real CLI', () => {
     expect(events.at(-1)?.type, JSON.stringify(events.slice(-3))).toBe('done');
     const project = path.join(workDir, 'real-ng');
     await expect(fs.stat(path.join(project, 'apps/web/angular.json'))).resolves.toBeDefined();
+    // The default CSS framework is Tailwind.
+    await expect(fs.stat(path.join(project, 'apps/web/.postcssrc.json'))).resolves.toBeDefined();
     await expect(fs.stat(path.join(project, 'apps/api/src/main.ts'))).resolves.toBeDefined();
     await expect(fs.stat(path.join(project, 'apps/api/pom.xml'))).rejects.toThrow();
   });

@@ -1,0 +1,48 @@
+.header {
+  display: block;
+  border-radius: var(--radius-md);
+}
+
+.header__bar {
+  /* The toolbar reads its colours and height from these variables: transparent, so the panel's glass shows. */
+  --mat-toolbar-container-background-color: transparent;
+  --mat-toolbar-container-text-color: var(--color-text);
+  --mat-toolbar-standard-height: var(--header-height);
+  --mat-toolbar-mobile-height: var(--header-height);
+
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .header__bar {
+    padding: var(--spacing-sm) var(--spacing-lg);
+  }
+}
+
+.header__logo {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.header__spacer {
+  flex: 1 1 auto;
+}
+
+/* The search field only fits from the md breakpoint up. */
+.header__search {
+  display: none;
+  width: 18rem;
+}
+
+@media (min-width: 768px) {
+  .header__search {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header__search {
+    width: 28rem;
+  }
+}

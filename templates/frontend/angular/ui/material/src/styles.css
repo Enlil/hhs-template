@@ -1,0 +1,408 @@
+/* Angular Material's Material Design 3 theme: plain CSS variables (--mat-sys-*), light only. */
+@import "@angular/material/prebuilt-themes/azure-blue.css";
+@import "./styles/tokens.css";
+@import "./styles/base.css";
+
+/*
+ * Make Material look like the HHS design guide, with no Sass: point Material's
+ * variables at the shared design tokens (tokens.css), so changing a token
+ * changes the Material look too. First the system variables every component
+ * reads (colours, type scale, shapes), then the few component variables the
+ * guide changes (pill buttons and fields, tabs, tags...). Anything not
+ * listed keeps the azure-blue theme's own value.
+ */
+html {
+  color-scheme: light;
+
+  /* Colours */
+  --mat-sys-primary: var(--color-primary);
+  --mat-sys-on-primary: var(--color-primary-foreground);
+  --mat-sys-primary-container: var(--color-primary-lighter);
+  --mat-sys-on-primary-container: var(--color-primary);
+  --mat-sys-secondary: var(--color-primary);
+  --mat-sys-on-secondary: var(--color-primary-foreground);
+  --mat-sys-secondary-container: var(--color-primary-lighter);
+  --mat-sys-on-secondary-container: var(--color-primary);
+  --mat-sys-background: var(--color-background);
+  --mat-sys-on-background: var(--color-text);
+  --mat-sys-surface: var(--color-surface);
+  --mat-sys-surface-container-lowest: var(--color-surface);
+  --mat-sys-surface-container-low: var(--color-surface);
+  --mat-sys-surface-container: var(--color-surface);
+  --mat-sys-surface-container-high: var(--color-surface);
+  --mat-sys-surface-container-highest: var(--color-base-lightest);
+  --mat-sys-on-surface: var(--color-text);
+  --mat-sys-on-surface-variant: var(--color-muted);
+  --mat-sys-outline: var(--color-base);
+  --mat-sys-outline-variant: var(--color-border);
+  --mat-sys-error: var(--color-alert);
+
+  /* The type scale: Roboto for h1 and h2, Fira Sans for the rest. Both the single values and the "shorthand" ones. */
+  --mat-sys-headline-small-font: var(--font-title);
+  --mat-sys-headline-small-size: var(--font-size-h1);
+  --mat-sys-headline-small-line-height: var(--line-height-h1);
+  --mat-sys-headline-small-weight: var(--font-weight-h1);
+  --mat-sys-headline-small-tracking: normal;
+  --mat-sys-headline-small: var(--font-weight-h1) var(--font-size-h1) / var(--line-height-h1) var(--font-title);
+  --mat-sys-title-large-font: var(--font-title);
+  --mat-sys-title-large-size: var(--font-size-h2);
+  --mat-sys-title-large-line-height: var(--line-height-h2);
+  --mat-sys-title-large-weight: var(--font-weight-h2);
+  --mat-sys-title-large-tracking: normal;
+  --mat-sys-title-large: var(--font-weight-h2) var(--font-size-h2) / var(--line-height-h2) var(--font-title);
+  --mat-sys-title-medium-font: var(--font-body);
+  --mat-sys-title-medium-size: var(--font-size-h4);
+  --mat-sys-title-medium-line-height: var(--line-height-h4);
+  --mat-sys-title-medium-weight: var(--font-weight-h4);
+  --mat-sys-title-medium-tracking: normal;
+  --mat-sys-title-medium: var(--font-weight-h4) var(--font-size-h4) / var(--line-height-h4) var(--font-body);
+  --mat-sys-title-small-font: var(--font-body);
+  --mat-sys-title-small-size: var(--font-size-content-2);
+  --mat-sys-title-small-line-height: var(--line-height-content-2);
+  --mat-sys-title-small-weight: var(--font-weight-content-2);
+  --mat-sys-title-small-tracking: normal;
+  --mat-sys-title-small: var(--font-weight-content-2) var(--font-size-content-2) / var(--line-height-content-2) var(--font-body);
+  --mat-sys-body-large-font: var(--font-body);
+  --mat-sys-body-large-size: var(--font-size-content-1);
+  --mat-sys-body-large-line-height: var(--line-height-content-1);
+  --mat-sys-body-large-weight: var(--font-weight-content-1);
+  --mat-sys-body-large-tracking: normal;
+  --mat-sys-body-large: var(--font-weight-content-1) var(--font-size-content-1) / var(--line-height-content-1) var(--font-body);
+  --mat-sys-body-medium-font: var(--font-body);
+  --mat-sys-body-medium-size: var(--font-size-content-3);
+  --mat-sys-body-medium-line-height: var(--line-height-content-3);
+  --mat-sys-body-medium-weight: var(--font-weight-content-3);
+  --mat-sys-body-medium-tracking: normal;
+  --mat-sys-body-medium: var(--font-weight-content-3) var(--font-size-content-3) / var(--line-height-content-3) var(--font-body);
+  --mat-sys-body-small-font: var(--font-body);
+  --mat-sys-body-small-size: var(--font-size-content-4);
+  --mat-sys-body-small-line-height: var(--line-height-content-4);
+  --mat-sys-body-small-weight: var(--font-weight-content-4);
+  --mat-sys-body-small-tracking: normal;
+  --mat-sys-body-small: var(--font-weight-content-4) var(--font-size-content-4) / var(--line-height-content-4) var(--font-body);
+  --mat-sys-label-large-font: var(--font-body);
+  --mat-sys-label-large-size: var(--font-size-content-2);
+  --mat-sys-label-large-line-height: var(--line-height-content-2);
+  --mat-sys-label-large-weight: var(--font-weight-content-2);
+  --mat-sys-label-large-tracking: normal;
+  --mat-sys-label-large: var(--font-weight-content-2) var(--font-size-content-2) / var(--line-height-content-2) var(--font-body);
+  /* The theme asks for the Roboto web font everywhere else too; the guide's body font is Fira Sans. */
+  --mat-sys-display-large-font: var(--font-body);
+  --mat-sys-display-medium-font: var(--font-body);
+  --mat-sys-display-small-font: var(--font-body);
+  --mat-sys-headline-large-font: var(--font-title);
+  --mat-sys-headline-medium-font: var(--font-title);
+  --mat-sys-label-medium-font: var(--font-body);
+  --mat-sys-label-small-font: var(--font-body);
+
+  /* Shapes */
+  --mat-sys-corner-extra-small: var(--radius-sm);
+  --mat-sys-corner-medium: var(--radius-md);
+  --mat-sys-corner-extra-large: var(--radius-lg);
+
+  /* Buttons: the guide's pills, 56px high. Filled is its primary button, tonal its secondary, outlined its tertiary. */
+  --mat-button-filled-container-shape: var(--radius-pill);
+  --mat-button-filled-container-height: 56px;
+  --mat-button-filled-horizontal-padding: 32px;
+  --mat-button-filled-container-color: var(--color-primary);
+  --mat-button-filled-label-text-color: var(--color-primary-foreground);
+  --mat-button-filled-label-text-font: var(--font-body);
+  --mat-button-filled-label-text-size: var(--font-size-content-1);
+  --mat-button-filled-label-text-weight: var(--font-weight-content-1);
+  --mat-button-filled-label-text-tracking: normal;
+  --mat-button-tonal-container-shape: var(--radius-pill);
+  --mat-button-tonal-container-height: 56px;
+  --mat-button-tonal-horizontal-padding: 32px;
+  --mat-button-tonal-container-color: var(--color-primary-lighter);
+  --mat-button-tonal-label-text-color: var(--color-primary);
+  --mat-button-tonal-label-text-font: var(--font-body);
+  --mat-button-tonal-label-text-size: var(--font-size-content-1);
+  --mat-button-tonal-label-text-weight: var(--font-weight-content-1);
+  --mat-button-tonal-label-text-tracking: normal;
+  --mat-button-outlined-container-shape: var(--radius-pill);
+  --mat-button-outlined-container-height: 56px;
+  --mat-button-outlined-horizontal-padding: 32px;
+  --mat-button-outlined-outline-color: var(--color-primary);
+  --mat-button-outlined-label-text-color: var(--color-primary);
+  --mat-button-outlined-label-text-font: var(--font-body);
+  --mat-button-outlined-label-text-size: var(--font-size-content-1);
+  --mat-button-outlined-label-text-weight: var(--font-weight-content-1);
+  --mat-button-outlined-label-text-tracking: normal;
+  --mat-button-text-container-shape: var(--radius-pill);
+  --mat-button-text-label-text-color: var(--color-primary-vivid);
+  --mat-button-text-label-text-font: var(--font-body);
+  --mat-button-text-label-text-size: var(--font-size-content-3);
+  --mat-button-text-label-text-weight: var(--font-weight-content-3);
+  --mat-button-text-label-text-tracking: normal;
+
+  /* Text fields: a white pill, 48px high, with no line under it and nothing floating in it (the label sits above). */
+  --mat-form-field-filled-container-color: var(--color-surface);
+  --mat-form-field-filled-container-shape: var(--radius-xl);
+  --mat-form-field-filled-active-indicator-height: 0px;
+  --mat-form-field-filled-focus-active-indicator-height: 0px;
+  --mat-form-field-filled-active-indicator-color: transparent;
+  --mat-form-field-filled-hover-active-indicator-color: transparent;
+  --mat-form-field-filled-focus-active-indicator-color: transparent;
+  --mat-form-field-filled-input-text-color: var(--color-text);
+  --mat-form-field-filled-input-text-placeholder-color: var(--color-subtle);
+  --mat-form-field-filled-caret-color: var(--color-text);
+  --mat-form-field-hover-state-layer-opacity: 0;
+  --mat-form-field-focus-state-layer-opacity: 0;
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-container-vertical-padding: 14px;
+  --mat-form-field-container-text-font: var(--font-body);
+  --mat-form-field-container-text-size: var(--font-size-content-3);
+  --mat-form-field-container-text-line-height: var(--line-height-content-3);
+  --mat-form-field-container-text-weight: var(--font-weight-content-3);
+  --mat-form-field-container-text-tracking: normal;
+  --mat-form-field-enabled-select-arrow-color: var(--color-text);
+  --mat-form-field-focus-select-arrow-color: var(--color-text);
+  --mat-select-enabled-arrow-color: var(--color-text);
+  --mat-select-focused-arrow-color: var(--color-text);
+  --mat-select-placeholder-text-color: var(--color-subtle);
+  --mat-select-enabled-trigger-text-color: var(--color-text);
+  --mat-select-trigger-text-font: var(--font-body);
+  --mat-select-trigger-text-size: var(--font-size-content-3);
+  --mat-select-trigger-text-line-height: var(--line-height-content-3);
+  --mat-select-trigger-text-weight: var(--font-weight-content-3);
+  --mat-select-trigger-text-tracking: normal;
+
+  /* Checkboxes and radio buttons: white, with a blue tick or dot. */
+  --mat-checkbox-selected-icon-color: var(--color-surface);
+  --mat-checkbox-selected-hover-icon-color: var(--color-surface);
+  --mat-checkbox-selected-focus-icon-color: var(--color-surface);
+  --mat-checkbox-selected-checkmark-color: var(--color-primary);
+  --mat-checkbox-unselected-icon-color: var(--color-base-light);
+  --mat-checkbox-unselected-hover-icon-color: var(--color-base);
+  --mat-checkbox-unselected-focus-icon-color: var(--color-base);
+  --mat-checkbox-label-text-color: var(--color-text);
+  --mat-checkbox-label-text-font: var(--font-body);
+  --mat-checkbox-label-text-size: var(--font-size-content-3);
+  --mat-checkbox-label-text-line-height: var(--line-height-content-3);
+  --mat-checkbox-label-text-tracking: normal;
+  --mat-radio-selected-icon-color: var(--color-primary);
+  --mat-radio-selected-hover-icon-color: var(--color-primary);
+  --mat-radio-selected-focus-icon-color: var(--color-primary);
+  --mat-radio-selected-pressed-icon-color: var(--color-primary);
+  --mat-radio-unselected-icon-color: var(--color-base-light);
+  --mat-radio-unselected-hover-icon-color: var(--color-base);
+  --mat-radio-unselected-focus-icon-color: var(--color-base);
+  --mat-radio-label-text-color: var(--color-text);
+  --mat-radio-label-text-font: var(--font-body);
+  --mat-radio-label-text-size: var(--font-size-content-3);
+  --mat-radio-label-text-line-height: var(--line-height-content-3);
+  --mat-radio-label-text-tracking: normal;
+
+  /* Tabs: Fira Sans Medium, with a 2px blue line under the one you are on. */
+  --mat-tab-active-indicator-color: var(--color-primary);
+  --mat-tab-active-hover-indicator-color: var(--color-primary);
+  --mat-tab-active-focus-indicator-color: var(--color-primary);
+  --mat-tab-active-indicator-height: 2px;
+  --mat-tab-active-indicator-shape: 0;
+  --mat-tab-active-label-text-color: var(--color-text);
+  --mat-tab-active-hover-label-text-color: var(--color-text);
+  --mat-tab-active-focus-label-text-color: var(--color-text);
+  --mat-tab-inactive-label-text-color: var(--color-text);
+  --mat-tab-inactive-hover-label-text-color: var(--color-text);
+  --mat-tab-inactive-focus-label-text-color: var(--color-text);
+  --mat-tab-divider-color: var(--color-surface);
+  --mat-tab-container-height: 56px;
+  --mat-tab-label-text-font: var(--font-body);
+  --mat-tab-label-text-size: var(--font-size-h4);
+  --mat-tab-label-text-line-height: var(--line-height-h4);
+  --mat-tab-label-text-weight: var(--font-weight-h4);
+  --mat-tab-label-text-tracking: normal;
+
+  /* Tags */
+  --mat-chip-container-height: 24px;
+  --mat-chip-container-shape-radius: var(--radius-sm);
+  --mat-chip-outline-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+  --mat-chip-elevated-container-color: color-mix(in srgb, var(--color-surface) 50%, transparent);
+  --mat-chip-label-text-color: var(--color-text);
+  --mat-chip-label-text-font: var(--font-body);
+  --mat-chip-label-text-size: var(--font-size-content-3);
+  --mat-chip-label-text-line-height: var(--line-height-content-3);
+  --mat-chip-label-text-weight: var(--font-weight-content-3);
+  --mat-chip-label-text-tracking: normal;
+
+  /* Cards: the guide's translucent white panel (see also .mat-mdc-card below). */
+  --mat-card-outlined-container-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  --mat-card-outlined-outline-color: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  --mat-card-outlined-container-shape: var(--radius-md);
+  --mat-card-title-text-font: var(--font-title);
+  --mat-card-title-text-size: var(--font-size-h2);
+  --mat-card-title-text-line-height: var(--line-height-h2);
+  --mat-card-title-text-weight: var(--font-weight-h2);
+  --mat-card-title-text-tracking: normal;
+
+  /* Dialogs */
+  --mat-dialog-container-shape: var(--radius-lg);
+  --mat-dialog-container-elevation-shadow: var(--shadow-raised);
+  --mat-dialog-subhead-font: var(--font-title);
+  --mat-dialog-subhead-size: var(--font-size-h2);
+  --mat-dialog-subhead-line-height: var(--line-height-h2);
+  --mat-dialog-subhead-weight: var(--font-weight-h2);
+  --mat-dialog-subhead-tracking: normal;
+
+  /* The guide's toggle: a white pill, one icon button per choice, the picked one filled blue. */
+  --mat-button-toggle-shape: var(--radius-pill);
+  --mat-button-toggle-height: 44px;
+  --mat-button-toggle-background-color: var(--color-surface);
+  --mat-button-toggle-text-color: var(--color-text);
+  --mat-button-toggle-selected-state-background-color: var(--color-primary);
+  --mat-button-toggle-selected-state-text-color: var(--color-primary-foreground);
+  --mat-button-toggle-divider-color: transparent;
+}
+
+body {
+  margin: 0;
+}
+
+/* Hover on the guide's buttons: filled and tonal get a deeper blue, as the guide says. */
+.mat-mdc-unelevated-button:not(:disabled):hover {
+  --mat-button-filled-container-color: var(--color-primary-vivid);
+  --mat-button-tonal-container-color: color-mix(in srgb, var(--color-primary-lighter), var(--color-primary) 12%);
+}
+
+/* Fields: round on all four corners (Material rounds only the top, because of the line under a filled field),
+   20px beside the text, as in the guide, and a ring while the field has focus. */
+.mat-mdc-form-field.mat-form-field-appearance-fill .mdc-text-field {
+  padding-inline: 20px;
+  border-bottom-left-radius: var(--mat-form-field-filled-container-shape);
+  border-bottom-right-radius: var(--mat-form-field-filled-container-shape);
+}
+
+.mat-mdc-form-field.mat-focused .mdc-text-field--filled {
+  outline: 2px solid var(--color-primary-vivid);
+  outline-offset: 2px;
+}
+
+/* Checkboxes: a white box with a thin grey edge, and a blue tick when it is on. */
+.mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__background,
+.mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background {
+  border-color: var(--color-base-light);
+  background-color: var(--color-surface);
+}
+
+/* The toggle: each button is a round pill, so the picked one is a circle. */
+.mat-button-toggle-group .mat-button-toggle {
+  border-radius: var(--radius-pill);
+}
+
+/* A card is a translucent panel over the blue page. */
+.mat-mdc-card {
+  backdrop-filter: blur(12px);
+}
+
+/* Tags sit on the page, not in a row of their own: no extra space around them. */
+.mat-mdc-chip-set .mdc-evolution-chip-set__chips {
+  margin: 0;
+}
+
+/* The classes below are shared by the pages and shell components. */
+
+/* A translucent white panel with a soft edge, for the header, the sidebar and other panels. */
+.glass {
+  background-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.page-subtitle {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-muted);
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+/* The label above a field, and the guide's menu item: a pill, filled blue for the page you are on. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.field__label {
+  font-size: var(--font-size-content-2);
+  font-weight: var(--font-weight-content-2);
+  line-height: var(--line-height-content-2);
+  color: var(--color-muted);
+}
+
+.menu-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-content-3);
+  line-height: var(--line-height-content-3);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu-pill:hover {
+  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+}
+
+.menu-pill--active,
+.menu-pill--active:hover {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+/* The guide's type scale as classes, for text that is not a heading. */
+.text-h1,
+.text-h2,
+.text-h3,
+.text-h4,
+.text-content-1,
+.text-content-2,
+.text-content-3,
+.text-content-4 {
+  margin: 0;
+}
+
+.text-h1 {
+  font: var(--font-weight-h1) var(--font-size-h1) / var(--line-height-h1) var(--font-title);
+}
+
+.text-h2 {
+  font: var(--font-weight-h2) var(--font-size-h2) / var(--line-height-h2) var(--font-title);
+}
+
+.text-h3 {
+  font: var(--font-weight-h3) var(--font-size-h3) / var(--line-height-h3) var(--font-body);
+}
+
+.text-h4 {
+  font: var(--font-weight-h4) var(--font-size-h4) / var(--line-height-h4) var(--font-body);
+}
+
+.text-content-1 {
+  font: var(--font-weight-content-1) var(--font-size-content-1) / var(--line-height-content-1) var(--font-body);
+}
+
+.text-content-2 {
+  font: var(--font-weight-content-2) var(--font-size-content-2) / var(--line-height-content-2) var(--font-body);
+}
+
+.text-content-3 {
+  font: var(--font-weight-content-3) var(--font-size-content-3) / var(--line-height-content-3) var(--font-body);
+}
+
+.text-content-4 {
+  font: var(--font-weight-content-4) var(--font-size-content-4) / var(--line-height-content-4) var(--font-body);
+}

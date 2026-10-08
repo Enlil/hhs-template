@@ -1,0 +1,7 @@
+<section [attr.aria-labelledby]="sectionId + '-title'" class="section">
+  <div>
+    <h2 [id]="sectionId + '-title'">{{ title }}</h2>
+    <p class="muted">{{ description }}</p>
+  </div>
+  <ng-content></ng-content>
+</section>

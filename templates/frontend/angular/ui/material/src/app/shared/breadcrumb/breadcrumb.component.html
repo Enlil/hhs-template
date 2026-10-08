@@ -1,0 +1,16 @@
+<nav aria-label="Breadcrumb">
+  <ol class="breadcrumb">
+    @for (item of items; track item.label; let first = $first) {
+      <li class="breadcrumb__item">
+        @if (!first) {
+          <ng-icon name="heroChevronRightSolid" size="12" aria-hidden="true" />
+        }
+        @if (item.path) {
+          <a [routerLink]="item.path" class="breadcrumb__link">{{ item.label }}</a>
+        } @else {
+          <span aria-current="page">{{ item.label }}</span>
+        }
+      </li>
+    }
+  </ol>
+</nav>

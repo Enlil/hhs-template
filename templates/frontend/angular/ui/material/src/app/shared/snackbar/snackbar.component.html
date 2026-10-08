@@ -1,0 +1,9 @@
+<div [attr.role]="role" [class]="'snackbar snackbar--' + status">
+  <ng-icon [name]="icon" size="32" class="snackbar__icon" aria-hidden="true" />
+  <p class="snackbar__message"><ng-content></ng-content></p>
+  @if (dismissible) {
+    <button matIconButton type="button" aria-label="Dismiss" (click)="closed.emit()">
+      <ng-icon name="heroXMarkSolid" size="24" aria-hidden="true" />
+    </button>
+  }
+</div>

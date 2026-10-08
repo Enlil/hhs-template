@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.search {
+  /* Bigger than an ordinary field: 56px high, a half-transparent white, and 32px beside the content. */
+  --mat-form-field-container-height: 56px;
+  --mat-form-field-container-vertical-padding: 16px;
+  --mat-form-field-container-text-size: var(--font-size-content-1);
+  --mat-form-field-container-text-line-height: var(--line-height-content-1);
+  --mat-form-field-filled-container-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  --mat-form-field-filled-container-shape: var(--radius-pill);
+
+  width: 100%;
+}
+
+.search ng-icon {
+  margin-right: 12px;
+  color: var(--color-text);
+}

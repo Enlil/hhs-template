@@ -1,0 +1,14 @@
+<button
+  type="button"
+  [attr.aria-current]="active ? 'page' : null"
+  (click)="activated.emit()"
+  [class]="menuItemClasses(active)"
+>
+  @if (icon) {
+    <ng-icon [name]="icon" size="20" class="shrink-0" aria-hidden="true" />
+  }
+  {{ label }}
+  @if (expandable) {
+    <ng-icon name="heroChevronDownSolid" size="20" class="shrink-0" aria-hidden="true" />
+  }
+</button>
