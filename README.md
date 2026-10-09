@@ -89,11 +89,11 @@ The two Material Design looks are different libraries — **MUI** for React, **A
 
 ### The HHS design guide
 
-Every generated app looks like the HHS-approved TEDS UX / UI style guide by default, in all four looks (React and Angular, each with Tailwind CSS or Material Design). The guide is a Figma file: [TEDS UX / UI Style Guide](https://www.figma.com/design/TB0ZJMtSJpwxUxLMaubaT9/B?node-id=805-26). What is taken from it:
+Every generated app looks like the HHS-approved TEDS UX / UI style guide by default, in all four looks (React and Angular, each with Tailwind CSS or Material Design). The guide is the TEDS UX / UI Style Guide (a Figma file). What is taken from it:
 
 - **Colors** — the whole color system, under its USWDS names (`base-darkest` ... `primary`, `primary-vivid`, `secondary-vivid`, `gold-30v` ...), plus the roles from its "Colors" page: content high / medium / low (`text`, `muted`, `subtle`), the accent colors and the status colors (`success`, `alert`, `warning`).
 - **Type** — Roboto for titles (h1, h2) and Fira Sans for everything else, with the guide's scale (h1–h4, content 1–4). Both fonts are installed from the `@fontsource` packages and served by the app itself: nothing is fetched from Google at run time. Only the Latin alphabet is loaded.
-- **Shapes and components** — pill buttons (filled, light blue, outlined), white pill fields with the label above, cards with a 16px corner, small square tags, the snackbar with a colored edge, tabs, steps, menu items, breadcrumbs, avatar and toggle. The page itself is a soft blue gradient with translucent white panels on it, as in the guide's app screen.
+- **Shapes and components** — pill buttons (filled, light blue, outlined), white pill fields with the label above, cards with a 16px corner, small square tags, the snackbar with a colored edge, tabs, steps, menu items, breadcrumbs, avatar and toggle. The page itself is a very light grey-blue gradient with translucent white panels on it, as in the guide's app screen.
 - **Icons** — [Heroicons](https://heroicons.com), from `@heroicons/react` (React) and `@ng-icons/heroicons` (Angular).
 
 The sidebar has a **Design guide** link: a sample page (`/design-guide`) that shows the guide's type scale, colors (with their tokens and uses), gradients, icons and every component, built with that look's own components, so it doubles as a reference. It is easy to remove (each look's README says how). Its data lives in one file per frontend (`src/lib/design-guide.ts`, `src/app/core/design-guide.ts`); tests check the two copies are identical and that every color and type size in it is the one in `tokens.css`.

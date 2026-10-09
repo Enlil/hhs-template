@@ -2,8 +2,6 @@
 // guide, as data. The colours are the ones in src/styles/tokens.css (a test
 // checks they agree); the names and wording are the guide's own.
 
-export const DESIGN_GUIDE_FIGMA_URL = 'https://www.figma.com/design/TB0ZJMtSJpwxUxLMaubaT9/B?node-id=805-26';
-
 export interface TypeStyle {
   /** What the guide calls it. */
   name: string;

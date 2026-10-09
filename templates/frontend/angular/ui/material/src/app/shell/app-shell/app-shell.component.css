@@ -1,4 +1,4 @@
-/* The blue page itself is the <body> (see src/styles/base.css); the header, navigation and sidebar float on it as translucent panels. */
+/* The light page itself is the <body> (see src/styles/base.css); the header, navigation and sidebar float on it as translucent panels. */
 .shell {
   display: flex;
   min-height: 100vh;

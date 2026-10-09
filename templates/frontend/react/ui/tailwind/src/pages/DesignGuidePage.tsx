@@ -36,7 +36,6 @@ import { Textarea } from '../components/Textarea';
 import {
   COLOR_GROUPS,
   COLOR_SYSTEM,
-  DESIGN_GUIDE_FIGMA_URL,
   GRADIENTS,
   TYPE_SCALE,
 } from '../lib/design-guide';
@@ -373,11 +372,7 @@ export function DesignGuidePage(): React.JSX.Element {
         <h1>Design guide</h1>
         <p className="mt-1 text-muted">
           A sample of the HHS-approved TEDS UX / UI style guide, built with this app&apos;s own colors, fonts and
-          components.{' '}
-          <a href={DESIGN_GUIDE_FIGMA_URL} target="_blank" rel="noreferrer" className="text-primary-vivid underline hover:no-underline">
-            Open the guide in Figma
-          </a>
-          .
+          components.
         </p>
       </div>
       <TypographySection />

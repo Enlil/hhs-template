@@ -10,10 +10,6 @@ p {
   margin: 0;
 }
 
-.link {
-  color: var(--color-primary-vivid);
-}
-
 .two-columns,
 .demos {
   display: grid;

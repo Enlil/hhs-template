@@ -289,7 +289,7 @@ body {
   border-radius: var(--radius-pill);
 }
 
-/* A card is a translucent panel over the blue page. */
+/* A card is a translucent panel over the light page. */
 .mat-mdc-card {
   backdrop-filter: blur(12px);
 }

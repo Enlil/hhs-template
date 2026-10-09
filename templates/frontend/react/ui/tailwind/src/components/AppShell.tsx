@@ -7,7 +7,7 @@ import { TopNavigation } from './TopNavigation';
 
 // A layout route (see App.tsx): renders once, and each nav destination
 // fills in <Outlet/> without remounting the header/nav/sidebar around it.
-// The blue page itself is the <body> (see src/styles/base.css); header,
+// The light page itself is the <body> (see src/styles/base.css); header,
 // navigation and sidebar float on it as translucent panels.
 export function AppShell(): React.JSX.Element {
   return (

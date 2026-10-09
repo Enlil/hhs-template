@@ -20,7 +20,7 @@ npm run typecheck   # type-check only
 
 ## The design guide
 
-The look comes from the HHS-approved TEDS UX / UI style guide ([in Figma](https://www.figma.com/design/TB0ZJMtSJpwxUxLMaubaT9/B?node-id=805-26)): its colors, fonts, type scale, shapes and components. The **Design guide** link in the sidebar opens a sample page that shows them, built with Angular Material and this app's own components, so it is also a reference for what you can use.
+The look comes from the HHS-approved TEDS UX / UI style guide: its colors, fonts, type scale, shapes and components. The **Design guide** link in the sidebar opens a sample page that shows them, built with Angular Material and this app's own components, so it is also a reference for what you can use.
 
 It is a sample: to remove it, delete `src/app/pages/design-guide` and `src/app/core/design-guide.ts`, take its route out of `src/app/app.routes.ts` and its entry out of `src/app/core/navigation.ts`.
 

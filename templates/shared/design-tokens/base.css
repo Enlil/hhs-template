@@ -20,7 +20,7 @@
   body {
     min-height: 100vh;
     margin: 0;
-    /* The soft blue page. The colour is what shows under it, and while it loads. */
+    /* The very light page. The colour is what shows under it, and while it loads. */
     background-color: var(--color-background);
     background-image: var(--gradient-background);
     background-attachment: fixed;

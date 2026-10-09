@@ -52,7 +52,6 @@ import { Step } from '../components/Step';
 import {
   COLOR_GROUPS,
   COLOR_SYSTEM,
-  DESIGN_GUIDE_FIGMA_URL,
   GRADIENTS,
   TYPE_SCALE,
 } from '../lib/design-guide';
@@ -440,11 +439,7 @@ export function DesignGuidePage(): React.JSX.Element {
         </Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
           A sample of the HHS-approved TEDS UX / UI style guide, built with this app&apos;s own colors, fonts and
-          components.{' '}
-          <Link href={DESIGN_GUIDE_FIGMA_URL} target="_blank" rel="noreferrer" underline="always">
-            Open the guide in Figma
-          </Link>
-          .
+          components.
         </Typography>
       </Box>
       <TypographySection />

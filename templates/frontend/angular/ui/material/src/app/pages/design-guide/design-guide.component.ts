@@ -12,7 +12,6 @@ import { NgIcon } from '@ng-icons/core';
 import {
   COLOR_GROUPS,
   COLOR_SYSTEM,
-  DESIGN_GUIDE_FIGMA_URL,
   GRADIENTS,
   TYPE_SCALE,
 } from '../../core/design-guide';
@@ -72,7 +71,6 @@ const ICONS: Array<{ name: string; icon: AppIconName }> = [
   styleUrl: './design-guide.component.css',
 })
 export class DesignGuideComponent {
-  protected readonly figmaUrl = DESIGN_GUIDE_FIGMA_URL;
   protected readonly typeGroups = [
     { title: 'Title', styles: TYPE_SCALE.slice(0, 4) },
     { title: 'Content', styles: TYPE_SCALE.slice(4) },

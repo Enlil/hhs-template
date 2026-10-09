@@ -58,13 +58,13 @@
   --color-alert: var(--color-secondary-vivid);
   --color-warning: var(--color-gold-30v);
 
-  /* The page: a soft blue gradient (see --gradient-background), with white inputs and translucent white panels on it */
-  --color-background: var(--color-primary-lighter);
+  /* The page: a very light grey-blue gradient (see --gradient-background), with white inputs and translucent white panels on it */
+  --color-background: #f7f9fb;
   --color-surface: #ffffff;
   --color-border: var(--color-base-lighter);
 
   --gradient-primary: linear-gradient(107.56deg, #003087 0%, #005cb9 100%); /* the guide's "BG Linear" */
-  --gradient-background: linear-gradient(160deg, #e3edf8 0%, #bdd0e8 100%);
+  --gradient-background: linear-gradient(160deg, #fcfdfe 0%, #f1f4f7 100%);
 
   /* Fonts: Roboto for titles, Fira Sans for everything else. base.css loads them. */
   --font-title: 'Roboto', Verdana, sans-serif;

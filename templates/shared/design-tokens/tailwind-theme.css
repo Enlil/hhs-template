@@ -102,7 +102,7 @@
 
 /*
  * A translucent white panel with a soft edge, for cards, the header and the
- * sidebar: the guide's app screens show these on the blue page. Use it as the
+ * sidebar: the guide's app screens show these on the page. Use it as the
  * class `glass`.
  */
 @utility glass {
